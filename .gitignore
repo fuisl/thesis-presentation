@@ -1,0 +1,13 @@
+# Large archive — exceeds GitHub's 100 MB limit, not needed for the deployed site
+thesis.zip
+
+# Source material / scratch — keep out of the public deploy
+scraps/
+screenshots/
+test-minimal.html
+.thumbnail
+
+# Tooling
+node_modules/
+.vercel/
+.DS_Store

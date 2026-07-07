@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style data-omelette-print-defaults>
+@media print {
+  @page { margin: 0.5in; }
+  h1, h2, h3, h4, h5, h6 { break-after: avoid; }
+  figure, table, pre, blockquote, img, svg, tr, [class~="card" i] { break-inside: avoid; }
+  img, svg { max-width: 100%; }
+  p { orphans: 3; widows: 3; }
+}
+</style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="design_doc_mode" content="canvas">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;family=Lora:ital,wght@0,400;0,500;0,600;1,400&amp;display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#faf9f5; --bg-card:#e8e6dc; --ink:#141413; --ink-soft:#4A4844;
+      --muted:#b0aea5; --line:#d9d6cb;
+      --accent:#d97757; --accent-dark:#b15a3c; --accent-deep:#8a3f27;
+      --good:#788c5d; --blue:#6a9bcc;
+      --tile-cream:#e8e6dc; --tile-paper:#faf9f5; --tile-sage:#788c5d; --tile-clay:#c7a876; --tile-terracotta:#d97757; --tile-blue:#6a9bcc; --tile-ink:#141413;
+      --head:'Poppins', Helvetica, Arial, sans-serif;
+      --body:'Lora', Georgia, serif;
+      --type-kicker:22px; --type-title:60px; --type-subtitle:38px; --type-body:28px; --type-small:23px;
+      --pad-x:100px; --pad-top:90px; --pad-bottom:70px; --gap-title:40px; --gap-item:24px;
+    }
+    ::selection{ background:var(--accent); color:#fff; }
+  </style>
+</helmet>
+<x-import component-from-global-scope="deck-stage" from="./deck-stage.js" width="1920" height="1080" hint-size="100%,100%" data-uneditable="">
+
+  <section data-label="Title" data-screen-label="01 Title" data-speaker-notes="This thesis asks whether traffic lights that talk to each other can control real German road networks better than traffic lights that act alone -- and which architectural choices actually matter." style="width:100%;height:100%;background:var(--ink);position:relative;overflow:hidden;font-family:var(--body);display:flex;">
+    <div style="width:57%;height:100%;position:relative;padding:90px 80px 90px 100px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:flex-end;">
+      <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent);text-transform:uppercase;margin-bottom:22px;">BACHELORS'S THESIS DEFENSE</div>
+      <h1 style="font-family:var(--head);font-weight:500;font-size:58px;line-height:1.18;color:var(--tile-paper);margin:0 0 40px 0;">FGS — A Modular Graph-Aware Multi-Agent Reinforcement Learning Framework for Traffic Signal Control on German Road Networks</h1>
+      <div style="display:flex;gap:60px;font-size:22px;color:#D9D6C9;flex-wrap:wrap;font-family:var(--body);">
+        <div>
+          <div style="color:var(--muted);font-family:var(--head);font-size:18px;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">Candidate</div>
+          <div>Tran Hai Duong</div>
+        </div>
+        <div>
+          <div style="color:var(--muted);font-family:var(--head);font-size:18px;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">Supervisors</div>
+          <div>Dr. Nguyen Tuan Cuong · Prof. Dr. Javad Ghofrani</div>
+        </div>
+        <div>
+          <div style="color:var(--muted);font-family:var(--head);font-size:18px;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">Date</div>
+          <div>July 9, 2026</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="width:826px;height:1080px;padding:34px;box-sizing:border-box;">
+      <div style="width:758px;height:1012px;border-radius:20px;position:relative;overflow:hidden;">
+        <img src="uploads/topology_orange.png" alt="Ingolstadt21 signal network topology" style="width:100%;height:100%;object-fit:cover;object-position:center;">
+        <div style="position:absolute;bottom:26px;left:32px;right:32px;font-family:var(--head);font-size:16px;letter-spacing:0.1em;color:rgba(20,20,19,0.7);text-transform:uppercase;">Agent graph — ingolstadt21 signal network</div>
+      </div>
+    </div>
+  </section>
+
+  <section data-label="The Problem" data-screen-label="02 Problem" data-speaker-notes="Congestion is not a per-intersection problem. A red phase at one junction blocks vehicles from reaching the next; queues spill back and cascade network-wide. Optimal timing depends on demand that is non-stationary." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">02 — The Problem</div>
+    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Congestion is a network problem</h2>
+
+    <div style="flex:1;display:grid;grid-template-columns:1.1fr 1fr;gap:40px;">
+      <div style="display:flex;flex-direction:column;justify-content:center;background:var(--bg-card);border-radius:4px;padding:60px 50px 50px;position:relative;">
+        <div style="position:relative;height:170px;">
+          <div style="position:absolute;left:0;right:0;top:50%;height:10px;transform:translateY(-50%);background:var(--line);border-radius:6px;"></div>
+          <div style="position:absolute;left:8%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;background:{{ node0Color }};transition:background 0.5s;{{ node0Ring }}"></div>
+          <div style="position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;background:{{ node1Color }};transition:background 0.5s;"></div>
+          <div style="position:absolute;left:92%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;background:{{ node2Color }};transition:background 0.5s;"></div>
+          <sc-for list="{{ cars2 }}" as="car" hint-placeholder-count="8">
+            <div style="position:absolute;top:50%;margin-top:-12px;width:22px;height:24px;border-radius:5px;left:{{ car.left }}%;background:{{ car.color }};opacity:{{ car.opacity }};transition:left 0.9s cubic-bezier(.2,.7,.3,1), background 0.5s;"></div>
+          </sc-for>
+          <div style="position:absolute;left:8%;top:-40px;font-family:var(--head);font-size:18px;color:var(--muted);transform:translateX(-50%);">int. 1</div>
+          <div style="position:absolute;left:50%;top:-40px;font-family:var(--head);font-size:18px;color:var(--muted);transform:translateX(-50%);">int. 2</div>
+          <div style="position:absolute;left:92%;top:-40px;font-family:var(--head);font-size:18px;color:var(--muted);transform:translateX(-50%);">int. 3</div>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:44px;">
+          <div style="font-size:var(--type-body);max-width:1150px;color:var(--ink-soft);">{{ caption2 }}</div>
+          <div onclick="{{ advanceScene2 }}" style="cursor:pointer;flex-shrink:0;width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-family:var(--head);font-weight:600;font-size:20px;background:var(--line);color:var(--muted);border-radius:50%;transition:background 0.2s,color 0.2s;" style-hover="background:var(--accent);color:#fff;">{{ sceneButtonLabel2 }}</div>
+        </div>
+      </div>
+
+      <div style="background:var(--bg-card);border-radius:4px;padding:24px;display:flex;flex-direction:column;">
+        <img src="uploads/ingolstadt21_spillback.gif" alt="Ingolstadt21 network spillback simulation" style="width:100%;flex:1;object-fit:cover;object-position:center;border-radius:3px;background:var(--bg);">
+        <div style="font-family:var(--head);font-size:17px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;text-align:center;margin-top:14px;">Ingolstadt21 — real spillback</div>
+      </div>
+    </div>
+  </section>
+
+  <section data-label="Intersection Basics" data-screen-label="03 Basics" data-speaker-notes="Ground the vocabulary before going further. An intersection has movements -- here 12, one per lane-turn combination. Phases group non-conflicting movements that can show green together -- here 8. At every timestep the agent picks one phase; that discrete choice is the action space every RL method in this thesis operates over." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">03 — Background</div>
+    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">How an intersection becomes an RL problem</h2>
+
+    <div style="flex:1;min-height:0;display:flex;flex-direction:column;gap:32px;">
+      <div style="flex:1;min-height:0;background:rgb(38,36,33);border-radius:4px;padding:0;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+        <img src="uploads/intersection-basics-infographic.png" alt="Diagram of an intersection showing movements, phases, and phase selection over time" style="height:100%;width:auto;max-width:100%;object-fit:contain;object-position:center;">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;">
+        <div style="background:var(--bg-card);border-radius:4px;padding:22px 28px;">
+          <div style="font-family:var(--head);font-weight:600;font-size:18px;color:var(--accent-dark);letter-spacing:0.06em;margin-bottom:8px;">Movements</div>
+          <div style="font-size:20px;color:var(--ink-soft);line-height:1.5;">Every lane × turn combination — 12 at a standard four-way intersection.</div>
+        </div>
+        <div style="background:var(--bg-card);border-radius:4px;padding:22px 28px;">
+          <div style="font-family:var(--head);font-weight:600;font-size:18px;color:var(--accent-dark);letter-spacing:0.06em;margin-bottom:8px;">Phases</div>
+          <div style="font-size:20px;color:var(--ink-soft);line-height:1.5;">Sets of non-conflicting movements that can go green together — here, 8 candidate phases.</div>
+        </div>
+        <div style="background:var(--bg-card);border-radius:4px;padding:22px 28px;">
+          <div style="font-family:var(--head);font-weight:600;font-size:18px;color:var(--accent-dark);letter-spacing:0.06em;margin-bottom:8px;">The action</div>
+          <div style="font-size:20px;color:var(--ink-soft);line-height:1.5;">At each timestep, the agent selects one phase. This is the discrete action space every method here shares.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section data-label="Why Control Falls Short" data-screen-label="04 Falls Short" data-speaker-notes="Two classical tracks: engineered adaptive systems and learning-based control. Single-agent RL adapts, but each agent optimizing its own local reward ignores upstream and downstream consequences." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">04 — Motivation</div>
+    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Why existing control falls short</h2>
+
+    <div style="flex:1;display:grid;grid-template-columns:1fr 1fr 1fr;gap:36px;">
+      <div style="border-radius:4px;padding:0;display:flex;flex-direction:column;transition:transform 0.25s;position:relative;overflow:hidden;" style-hover="transform:translateY(-6px);">
+        <img src="uploads/fix_time.png" alt="Fixed-time signal control illustration" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;z-index:0;">
+        <div style="position:relative;z-index:1;padding:32px 40px 0;font-family:var(--head);font-weight:500;font-size:30px;">Fixed-time</div>
+        <div style="position:relative;z-index:1;margin-top:auto;padding:20px 40px 32px;font-size:var(--type-small);color:var(--ink-soft);line-height:1.5;">Static plans, tuned to average demand.</div>
+      </div>
+      <div style="border-radius:4px;padding:0;display:flex;flex-direction:column;transition:transform 0.25s;position:relative;overflow:hidden;" style-hover="transform:translateY(-6px);">
+        <img src="uploads/scoot_scats.png" alt="SCOOT/SCATS adaptive control illustration" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;z-index:0;">
+        <div style="position:relative;z-index:1;padding:32px 40px 0;font-family:var(--head);font-weight:500;font-size:30px;">Adaptive<br>(SCOOT / SCATS)</div>
+        <div style="position:relative;z-index:1;margin-top:auto;padding:20px 40px 32px;font-size:var(--type-small);color:var(--ink-soft);line-height:1.5;">Needs dense sensors and expert calibration.</div>
+      </div>
+      <div style="border-radius:4px;padding:0;display:flex;flex-direction:column;border:2px solid var(--accent);transition:transform 0.25s;position:relative;overflow:hidden;" style-hover="transform:translateY(-6px);">
+        <img src="uploads/RL.png" alt="RL per intersection illustration" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;z-index:0;">
+        <div style="position:relative;z-index:1;padding:32px 40px 0;font-family:var(--head);font-weight:500;font-size:30px;">RL per intersection</div>
+        <div style="position:relative;z-index:1;margin-top:auto;padding:20px 40px 32px;font-size:var(--type-small);color:var(--ink-soft);line-height:1.5;">Learns locally — <strong style="color:var(--accent-dark);">ignores neighbors</strong>.</div>
+      </div>
+    </div>
+  </section>
+
+  <section data-label="The Three Gaps" data-screen-label="05 Three Gaps" data-speaker-notes="The grid-vs-ingolstadt picture is the motivation. Regular topology and uniform eight-phase intersections on the left; irregular topology mixing two, four and six phase junctions on the right. Nobody had checked whether graph-based coordination transfers." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">05 — Motivation</div>
+    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 32px 0;">Three gaps in the literature</h2>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:32px;margin-bottom:36px;">
+      <div style="background:var(--bg-card);border-radius:4px;padding:34px 36px;">
+        <div style="width:56px;height:56px;border-radius:12px;background:var(--tile-paper);display:flex;align-items:center;justify-content:center;margin-bottom:18px;"><svg width="32" height="32" viewBox="0 0 56 56" fill="none"><path d="M28 6 L46 15 V38 L28 50 L10 38 V15 Z" stroke="#141413" stroke-width="2.4" fill="none" stroke-linejoin="round"></path><circle cx="28" cy="27" r="4.5" fill="#d97757"></circle></svg></div>
+        <div style="font-family:var(--head);font-weight:500;font-size:25px;margin-bottom:10px;">Wrong benchmarks</div>
+        <div style="font-size:21px;color:var(--ink-soft);">Validated on synthetic / Chinese grids, not irregular German networks.</div>
+      </div>
+      <div style="background:var(--bg-card);border-radius:4px;padding:34px 36px;">
+        <div style="width:56px;height:56px;border-radius:12px;background:var(--tile-sage);display:flex;align-items:center;justify-content:center;margin-bottom:18px;"><svg width="32" height="32" viewBox="0 0 56 56" fill="none"><rect x="9" y="9" width="38" height="38" rx="7" stroke="#141413" stroke-width="2.4"></rect><circle cx="20" cy="20" r="3.4" fill="#141413"></circle><circle cx="36" cy="20" r="3.4" fill="#141413"></circle><circle cx="28" cy="33" r="3.4" fill="#141413"></circle></svg></div>
+        <div style="font-family:var(--head);font-weight:500;font-size:25px;margin-bottom:10px;">Missing algorithm</div>
+        <div style="font-size:21px;color:var(--ink-soft);">SAC never systematically tried in graph-aware MARL-TSC.</div>
+      </div>
+      <div style="background:var(--bg-card);border-radius:4px;padding:34px 36px;">
+        <div style="width:56px;height:56px;border-radius:12px;background:var(--tile-terracotta);display:flex;align-items:center;justify-content:center;margin-bottom:18px;"><svg width="32" height="32" viewBox="0 0 56 56" fill="none"><circle cx="22" cy="22" r="13" stroke="#faf9f5" stroke-width="2.4"></circle><circle cx="36" cy="22" r="13" stroke="#faf9f5" stroke-width="2.4"></circle><circle cx="29" cy="35" r="13" stroke="#faf9f5" stroke-width="2.4"></circle></svg></div>
+        <div style="font-family:var(--head);font-weight:500;font-size:25px;margin-bottom:10px;">Unmapped design space</div>
+        <div style="font-size:21px;color:var(--ink-soft);">Encoder × communication × RL never ablated as independent choices.</div>
+      </div>
+    </div>
+
+    <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:32px;">
+      <div style="background:var(--bg-card);border-radius:4px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;">
+        <img src="uploads/gudang_subdistrict_topology.png" alt="Gudang subdistrict regular grid topology" style="width:100%;height:100%;object-fit:contain;">
+        <div style="position:absolute;top:16px;left:16px;font-family:var(--head);font-weight:600;font-size:17px;letter-spacing:0.04em;background:var(--bg-card);color:var(--ink-soft);padding:8px 16px;border-radius:3px;">Gudang, Hangzhou</div>
+      </div>
+      <div style="background:var(--bg-card);border-radius:4px;display:flex;align-items:center;justify-content:center;position:relative;border:2px solid var(--accent);overflow:hidden;">
+        <img src="uploads/ingolstadt21_topology.png" alt="Ingolstadt21 irregular topology" style="width:100%;height:100%;object-fit:contain;">
+        <div style="position:absolute;top:16px;left:16px;font-family:var(--head);font-weight:600;font-size:17px;letter-spacing:0.04em;background:var(--bg-card);color:var(--ink-soft);padding:8px 16px;border-radius:3px;">Ingolstadt, Germany</div>
+      </div>
+    </div>
+    <div style="text-align:center;font-size:var(--type-small);color:var(--ink-soft);margin-top:22px;font-style:italic;">Does coordination that works here transfer here?</div>
+  </section>
+
+  <section data-label="The Landscape" data-screen-label="06 Landscape" data-speaker-notes="This one table is my related-work section. Each prior method is a single point in a three-dimensional design space. No published work varies all three axes, and no graph-based method has been evaluated on German RESCO scenarios." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">06 — Related Work</div>
+    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 32px 0;">The landscape in one table</h2>
+
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+      <div style="display:grid;grid-template-columns:1.4fr 1fr 1.2fr 1fr;background:var(--bg-card);border-radius:4px 4px 0 0;padding:20px 36px;font-family:var(--head);font-weight:600;font-size:19px;letter-spacing:0.05em;text-transform:uppercase;color:var(--muted);">
+        <div>Method</div><div>Encoder</div><div>Communication</div><div>RL</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1.4fr 1fr 1.2fr 1fr;padding:18px 36px;font-size:var(--type-small);border-bottom:1px solid var(--line);"><div>IntelliLight</div><div>MLP</div><div style="color:var(--muted);">—</div><div>DQN</div></div>
+      <div style="display:grid;grid-template-columns:1.4fr 1fr 1.2fr 1fr;padding:18px 36px;font-size:var(--type-small);border-bottom:1px solid var(--line);"><div>PressLight</div><div>Pressure</div><div style="color:var(--muted);">—</div><div>DQN</div></div>
+      <div style="display:grid;grid-template-columns:1.4fr 1fr 1.2fr 1fr;padding:18px 36px;font-size:var(--type-small);border-bottom:1px solid var(--line);"><div>FRAP</div><div style="color:var(--accent-dark);font-weight:600;">FRAP</div><div style="color:var(--muted);">—</div><div>DQN</div></div>
+      <div style="display:grid;grid-template-columns:1.4fr 1fr 1.2fr 1fr;padding:18px 36px;font-size:var(--type-small);border-bottom:1px solid var(--line);"><div>CoLight</div><div>MLP</div><div style="color:var(--accent-dark);font-weight:600;">GAT</div><div>DQN</div></div>
+      <div style="display:grid;grid-template-columns:1.4fr 1fr 1.2fr 1fr;padding:18px 36px;font-size:var(--type-small);border-bottom:1px solid var(--line);"><div>MPLight</div><div>Pressure</div><div style="color:var(--muted);">—</div><div>DQN</div></div>
+      <div onclick="{{ toggleLandscape }}" style="cursor:pointer;display:grid;grid-template-columns:1.4fr 1fr 1.2fr 1fr;padding:22px 36px;font-size:var(--type-small);background:{{ fgsRowBg }};border-radius:0 0 4px 4px;opacity:{{ fgsRowOpacity }};transform:{{ fgsRowTransform }};transition:opacity 0.5s, transform 0.5s, background 0.5s;color:#fff;font-weight:600;">
+        <div>FGS (this thesis)</div><div>MLP / FRAP</div><div>GATv2</div><div>SAC / PPO / factored</div>
+      </div>
+      <div style="text-align:right;margin-top:18px;font-family:var(--head);font-size:18px;color:var(--muted);">{{ landscapeHint }}</div>
+    </div>
+  </section>
+
+  <section data-label="Two Relevant Baselines" data-screen-label="07 Baselines" data-speaker-notes="Two methods matter for my story because I test their assumptions directly. FRAP encodes a strong prior about phase structure; CoLight's static attention treats all neighbors alike. Both were validated on regular Chinese grids." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">07 — Related Work</div>
+    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Two baselines this thesis tests directly</h2>
+
+    <div style="flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;gap:40px;">
+      <div style="border-radius:4px;position:relative;overflow:hidden;">
+        <img src="uploads/FRAP_abstract.png" alt="FRAP phase-competition encoder: movement embeddings compared through a competition matrix to a phase score" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;">
+        <div style="position:absolute;top:24px;left:24px;font-family:var(--head);font-weight:600;font-size:18px;letter-spacing:0.06em;text-transform:uppercase;color:#F4F1E6;text-shadow:0 1px 6px rgba(0,0,0,0.5);">FRAP</div>
+        <div style="position:absolute;left:24px;right:24px;bottom:24px;display:flex;align-items:center;gap:14px;background:rgba(20,20,19,0.82);border-radius:3px;padding:14px 20px;">
+          <div style="width:10px;height:10px;border-radius:50%;background:var(--accent);flex-shrink:0;"></div>
+          <div style="font-size:20px;color:#F4F1E6;">Assumes regular phase structure</div>
+        </div>
+      </div>
+      <div style="border-radius:4px;position:relative;overflow:hidden;">
+        <img src="uploads/colight.png" alt="CoLight attention diagram: shared-weight dot-product attention radiating from an intersection to its neighbors" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;">
+        <div style="position:absolute;top:24px;left:24px;font-family:var(--head);font-weight:600;font-size:18px;letter-spacing:0.06em;text-transform:uppercase;color:#F4F1E6;text-shadow:0 1px 6px rgba(0,0,0,0.5);">CoLight</div>
+        <div style="position:absolute;left:24px;right:24px;bottom:24px;display:flex;align-items:center;gap:14px;background:rgba(20,20,19,0.82);border-radius:3px;padding:14px 20px;">
+          <div style="width:10px;height:10px;border-radius:50%;background:var(--accent);flex-shrink:0;"></div>
+          <div style="font-size:20px;color:#F4F1E6;">Assumes homogeneous neighbors</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section data-label="Research Questions" data-screen-label="08 RQs" data-speaker-notes="These three questions structure everything that follows: the architecture is built to answer SQ2, the benchmark to answer SQ1, and the scale tiers to answer SQ3. I return to this slide at the end and answer each one." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">08 — Research Questions</div>
+    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">One question, three ways to test it</h2>
+
+    <div style="background:var(--ink);color:var(--tile-paper);border-radius:4px;padding:36px 44px;margin-bottom:32px;">
+      <div style="font-family:var(--head);font-weight:600;font-size:18px;letter-spacing:0.1em;color:var(--accent);text-transform:uppercase;margin-bottom:12px;">Main Research Question</div>
+      <div style="font-family:var(--body);font-size:29px;line-height:1.5;">Can a modular pipeline — encoder, graph attention, and RL algorithm as independent choices — deliver competitive, scalable signal control on real German networks? Which choices matter most, at which scale?</div>
+    </div>
+
+    <div style="flex:1;display:grid;grid-template-columns:1fr 1fr 1fr;gap:32px;">
+      <div style="background:var(--bg-card);border-radius:4px;padding:36px;display:flex;flex-direction:column;gap:16px;">
+        <div style="font-family:var(--head);font-weight:600;font-size:18px;color:var(--accent-dark);letter-spacing:0.06em;">SQ1 — EXTERNAL VALIDITY</div>
+        <div style="font-size:var(--type-body);line-height:1.5;">How does FGS compare against classical and deep-RL baselines across three scale tiers?</div>
+      </div>
+      <div style="background:var(--bg-card);border-radius:4px;padding:36px;display:flex;flex-direction:column;gap:16px;">
+        <div style="font-family:var(--head);font-weight:600;font-size:18px;color:var(--accent-dark);letter-spacing:0.06em;">SQ2 — DESIGN SPACE</div>
+        <div style="font-size:var(--type-body);line-height:1.5;">How do encoder (MLP vs. FRAP) and attention (GAT vs. GATv2) affect performance and stability?</div>
+      </div>
+      <div style="background:var(--bg-card);border-radius:4px;padding:36px;display:flex;flex-direction:column;gap:16px;">
+        <div style="font-family:var(--head);font-weight:600;font-size:18px;color:var(--accent-dark);letter-spacing:0.06em;">SQ3 — SCALE DEPENDENCY</div>
+        <div style="font-size:var(--type-body);line-height:1.5;">How does each component's benefit change from N = 1 to N = 21?</div>
+      </div>
+    </div>
+  </section>
+
+  <section data-label="FGS Pipeline" data-screen-label="09 Pipeline" data-speaker-notes="FGS equals Framework for Graph-aware Signal control. Each intersection is an agent. The key idea is decoupling: encoder, communication, and RL algorithm are independently pluggable, trained centrally and executed decentrally. The FRAP encoder is tapped at two internal points -- once for the action tokens Module III consumes, once for the raw demand signal Module II shares." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">09 — The FGS Pipeline</div>
+    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">FGS in one picture</h2>
+
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:36px;">
+      <div style="display:flex;align-items:stretch;gap:20px;">
+        <div style="flex:1;background:var(--bg-card);border-radius:4px;padding:32px;text-align:center;">
+          <div style="font-family:var(--head);font-size:17px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">Module I</div>
+          <div style="font-family:var(--head);font-weight:500;font-size:28px;margin-bottom:16px;">Encoder</div>
+          <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+            <div style="background:var(--tile-paper);border-radius:20px;padding:8px 18px;font-family:var(--head);font-size:17px;">MLP</div>
+            <div style="background:var(--tile-paper);border-radius:20px;padding:8px 18px;font-family:var(--head);font-size:17px;">FRAP</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;font-size:36px;color:var(--muted);">→</div>
+        <div style="flex:1;background:var(--bg-card);border-radius:4px;padding:32px;text-align:center;">
+          <div style="font-family:var(--head);font-size:17px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">Module II</div>
+          <div style="font-family:var(--head);font-weight:500;font-size:28px;margin-bottom:16px;">Graph Communication</div>
+          <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+            <div style="background:var(--tile-paper);border-radius:20px;padding:8px 18px;font-family:var(--head);font-size:17px;">none</div>
+            <div style="background:var(--tile-paper);border-radius:20px;padding:8px 18px;font-family:var(--head);font-size:17px;">GAT</div>
+            <div style="background:var(--tile-paper);border-radius:20px;padding:8px 18px;font-family:var(--head);font-size:17px;">GATv2 (gated)</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;font-size:36px;color:var(--muted);">→</div>
+        <div style="flex:1;background:var(--bg-card);border-radius:4px;padding:32px;text-align:center;">
+          <div style="font-family:var(--head);font-size:17px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">Module III</div>
+          <div style="font-family:var(--head);font-weight:500;font-size:28px;margin-bottom:16px;">RL Optimizer</div>
+          <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+            <div style="background:var(--tile-paper);border-radius:20px;padding:8px 18px;font-family:var(--head);font-size:17px;">DQN</div>
+            <div style="background:var(--tile-paper);border-radius:20px;padding:8px 18px;font-family:var(--head);font-size:17px;">PPO</div>
+            <div style="background:var(--tile-paper);border-radius:20px;padding:8px 18px;font-family:var(--head);font-size:17px;">SAC</div>
+          </div>
+        </div>
+      </div>
+      <div style="font-size:var(--type-small);color:var(--ink-soft);max-width:1300px;">SUMO observation x<sub>i</sub> → phase policy π<sub>i</sub>. Encoder, communication, and RL are independently pluggable — trained centrally, executed decentrally (CTDE). The encoder is tapped twice: action tokens skip straight to Module III, a separate demand embedding feeds Module II.</div>
+    </div>
+  </section>
+
+  <section data-label="FRAP Encoder Detail" data-screen-label="10 FRAP Detail" data-speaker-notes="Zooming into Module I's FRAP encoder: four steps turn raw per-movement demand into either a phase score or an action token. Step 1 extracts demand and phase indicator per movement into a movement embedding. Step 2 pools movement embeddings per candidate phase. Step 3 builds a pairwise competition feature between the selected phase and each competitor, combining relative demand and conflict relation. Step 4 outputs either the original FRAP scalar phase score, or -- FGS's deviation -- the full C-dimensional action token z_i,a, keeping everything per-phase instead of collapsing to one number before Module II and III." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">10 — The FGS Pipeline</div>
+    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Inside Module I: the FRAP encoder</h2>
+
+    <div style="flex:1;min-height:0;background:rgb(240,231,221);border-radius:4px;padding:20px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+      <img src="uploads/frap.png" alt="FRAP encoder: movement embedding, phase embedding, pairwise competition feature, and outputs (original FRAP phase score vs. FGS action token)" style="max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;">
+    </div>
+  </section>
+
+  <section data-label="Module II Communication" data-screen-label="11 Communication" data-speaker-notes="Each agent shares a demand embedding -- not raw features -- built from its mean phase demand plus its last phase. GATv2 aggregates neighbors' demand embeddings; a learnable gate, starting at zero, controls how much of that context the agent actually uses. On irregular German topologies that distinguishability turns out to be decisive." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">11 — The FGS Pipeline</div>
+    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">What agents actually share</h2>
+
+    <div style="flex:1;min-height:0;position:relative;border-radius:4px;overflow:hidden;">
+      <img src="uploads/observation.png" alt="Left: encoded per-movement messages compress into a single demand embedding. Right: agents (orange) exchange gated messages with neighbors over the graph, ungated agents (grey) unaffected" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;" />
+      <div style="position:absolute;top:28px;left:28px;max-width:42%;padding:16px 22px;">
+        <div style="font-family:var(--head);font-weight:600;font-size:17px;color:var(--accent-dark);margin-bottom:4px;text-shadow:0 1px 6px rgba(217,214,209,0.9),0 0 14px rgba(217,214,209,0.9);">Message: demand, not raw features</div>
+        <div style="font-size:19px;color:var(--ink-soft);text-shadow:0 1px 6px rgba(217,214,209,0.9),0 0 14px rgba(217,214,209,0.9);">d<sub>i</sub> = mean phase-demand embedding ⊕ last-phase identity. Neighbors attend over d<sub>i</sub>, not full observations.</div>
+      </div>
+      <div style="position:absolute;top:28px;right:28px;max-width:38%;padding:16px 22px;">
+        <div style="font-family:var(--head);font-weight:600;font-size:17px;color:var(--accent-dark);margin-bottom:4px;text-shadow:0 1px 6px rgba(217,214,209,0.9),0 0 14px rgba(217,214,209,0.9);">Gated, not forced</div>
+        <div style="font-size:19px;color:var(--ink-soft);text-shadow:0 1px 6px rgba(217,214,209,0.9),0 0 14px rgba(217,214,209,0.9);">g<sub>i</sub> = d<sub>i</sub> + λ·GATv2(d). λ starts at 0 — a pure local policy that learns to trust neighbors.</div>
+      </div>
+    </div>
+  </section>
+
+  <section data-label="FGS Full Pipeline" data-screen-label="12 Full Pipeline" data-speaker-notes="This is the whole architecture end to end: Module I encodes local demand into per-phase tokens, Module II pools and shares that with GATv2 attention across neighbors, Module III fuses both into the actor and factored critic. Nothing here is new versus the last three slides -- this is just the single-picture summary before we move to experiments." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">12 — The FGS Pipeline</div>
+    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">FGS in one picture</h2>
+
+    <div style="flex:1;min-height:0;background:rgb(202,102,55);border-radius:4px;padding:20px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+      <img src="uploads/fgs_pipeline.png" alt="Full FGS architecture: Module I FRAP encoder, Module II GATv2 communication, Module III actor and factored critic" style="max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;">
+    </div>
+  </section>
+
+  <section data-label="Three Generations" data-screen-label="13 Generations" data-speaker-notes="The final architecture wasn't designed on a whiteboard. A first-generation ablation tested four encoder-communication combinations and exposed the scalar bottleneck. It was reached through three generations of hypothesis, experiment, diagnosed failure, targeted repair. This trajectory is itself a contribution." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">13 — The FGS Pipeline</div>
+    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Not designed once — debugged into existence</h2>
+
+    <div style="flex:1;display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;align-items:stretch;">
+      <div style="background:var(--bg-card);border-radius:4px 0 0 4px;padding:36px;display:flex;flex-direction:column;gap:14px;">
+        <div style="font-family:var(--head);font-size:18px;color:var(--muted);text-transform:uppercase;">Gen-1 — 4 variants ablated</div>
+        <div style="font-family:var(--head);font-weight:500;font-size:24px;">FRAP scalar output</div>
+        <div style="font-size:21px;color:var(--ink-soft);line-height:1.5;">1×1 conv collapses each phase's competition features to one scalar before the graph ever sees it.</div>
+        <div style="margin-top:auto;display:flex;align-items:center;gap:10px;color:var(--accent-dark);font-family:var(--head);font-size:18px;">✕ scalar bottleneck</div>
+      </div>
+      <div style="background:var(--bg-card);border-left:2px solid var(--bg);padding:36px;display:flex;flex-direction:column;gap:14px;">
+        <div style="font-family:var(--head);font-size:18px;color:var(--muted);text-transform:uppercase;">FGSv2</div>
+        <div style="font-family:var(--head);font-weight:500;font-size:24px;">Per-phase action tokens</div>
+        <div style="font-size:21px;color:var(--ink-soft);line-height:1.5;">Tokens tapped post-competition — message carries phase rankings, not raw demand. Centralized critic O(N·d) explodes at N=21.</div>
+        <div style="margin-top:auto;display:flex;align-items:center;gap:10px;color:var(--accent-dark);font-family:var(--head);font-size:18px;">✕ wrong message + critic OOM</div>
+      </div>
+      <div style="background:var(--accent);border-radius:0 4px 4px 0;border-left:2px solid var(--bg);padding:36px;display:flex;flex-direction:column;gap:14px;color:#fff;">
+        <div style="font-family:var(--head);font-size:18px;color:#F5E4DA;text-transform:uppercase;">FGS (final)</div>
+        <div style="font-family:var(--head);font-weight:500;font-size:24px;">Demand tapped earlier + gated</div>
+        <div style="font-size:21px;line-height:1.5;">Message now taps pre-competition phase demand; factored neighborhood critic O(d<sub>c</sub>) — independent of N.</div>
+        <div style="margin-top:auto;display:flex;align-items:center;gap:10px;font-family:var(--head);font-size:18px;">✓ resolved</div>
+      </div>
+    </div>
+  </section>
+
+  <section data-label="Factored Critic" data-screen-label="14 Factored Critic" data-speaker-notes="The concrete blocker for SAC at 21 agents: the standard centralized critic scales linearly with agent count and runs out of memory. The factored critic conditions on graph context, action tokens, and pooled neighbor context instead of the raw joint observation -- input dimension fixed at 204 regardless of N." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">14 — The FGS Pipeline</div>
+    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">The scalability fix: factored critic</h2>
+
+    <div style="flex:1;min-height:0;background:rgb(203,116,83);border-radius:4px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+      <img src="uploads/scalability-fix.png" alt="Full centralized critic conditions on every agent in the network; factored critic conditions each agent only on itself and its immediate neighbors, independent of network size" style="width:100%;height:100%;object-fit:contain;">
+    </div>
+    <div style="text-align:center;margin-top:28px;font-family:var(--head);font-weight:500;font-size:30px;color:var(--accent-dark);">15× smaller</div>
+  </section>
+
+  <section data-label="Agent Design" data-screen-label="15 Agent Design" data-speaker-notes="For completeness, the MDP interfaces -- dwell only 30 seconds: local partial observation, discrete phase selection with invalid logits masked to negative infinity, dense reward from change in accumulated waiting time. Formally a Dec-POMDP. Remember the reward choice -- it comes back in the discussion." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">15 — The FGS Pipeline</div>
+    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Agent design in one breath</h2>
+
+    <div style="flex:1;display:grid;grid-template-columns:1fr 1fr 1fr;gap:32px;">
+      <div style="background:var(--bg-card);border-radius:4px;padding:36px;">
+        <div style="font-family:var(--head);font-weight:600;font-size:18px;color:var(--accent-dark);letter-spacing:0.06em;margin-bottom:14px;">OBSERVATION</div>
+        <div style="font-size:var(--type-body);line-height:1.5;margin-bottom:18px;">Per-lane density and queue, plus current phase state.</div>
+        <div style="display:flex;gap:6px;">
+          <div style="flex:1;height:52px;background:var(--tile-terracotta);border-radius:4px;"></div>
+          <div style="flex:1;height:34px;background:var(--tile-sage);border-radius:4px;margin-top:18px;"></div>
+          <div style="flex:1;height:46px;background:var(--tile-blue);border-radius:4px;margin-top:6px;"></div>
+          <div style="flex:1;height:24px;background:var(--tile-clay);border-radius:4px;margin-top:28px;"></div>
+        </div>
+      </div>
+      <div style="background:var(--bg-card);border-radius:4px;padding:36px;">
+        <div style="font-family:var(--head);font-weight:600;font-size:18px;color:var(--accent-dark);letter-spacing:0.06em;margin-bottom:14px;">ACTION</div>
+        <div style="font-size:var(--type-body);line-height:1.5;margin-bottom:18px;">Select the next signal phase — invalid phases masked out before the softmax.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div style="background:var(--tile-paper);border-radius:4px;padding:12px;text-align:center;font-family:var(--head);font-size:17px;">A</div>
+          <div style="background:var(--accent);color:#fff;border-radius:4px;padding:12px;text-align:center;font-family:var(--head);font-size:17px;">B ←</div>
+          <div style="background:var(--tile-paper);border-radius:4px;padding:12px;text-align:center;font-family:var(--head);font-size:17px;">C</div>
+          <div style="background:var(--tile-paper);border-radius:4px;padding:12px;text-align:center;font-family:var(--head);font-size:17px;">D</div>
+        </div>
+      </div>
+      <div style="background:var(--bg-card);border-radius:4px;padding:36px;">
+        <div style="font-family:var(--head);font-weight:600;font-size:18px;color:var(--accent-dark);letter-spacing:0.06em;margin-bottom:14px;">REWARD</div>
+        <div style="font-size:var(--type-body);line-height:1.5;margin-bottom:18px;">Differential waiting time.</div>
+        <div style="font-family:var(--head);font-weight:500;font-size:28px;text-align:center;background:var(--tile-paper);border-radius:4px;padding:24px;">r<sub>t</sub> = W<sub>t−1</sub> − W<sub>t</sub></div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:24px;font-family:var(--head);font-size:18px;color:var(--muted);">Dec-POMDP: ⟨N, S, {O<sub>i</sub>}, {A<sub>i</sub>}, T, {r<sub>i</sub>}, γ⟩ — agents act simultaneously, observe only their own intersection and immediate neighbors.</div>
+  </section>
+
+  <section data-label="Six Scenarios" data-screen-label="16 Scenarios" data-speaker-notes="All six German RESCO scenarios: real road geometry, real demand models, unmodified benchmark files. The three-tier structure is the instrument for answering SQ3. Each episode is one hour of simulated traffic in SUMO." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">16 — Experimental Setup</div>
+    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 28px 0;">Six real German scenarios, three scale tiers</h2>
+
+    <div style="display:grid;grid-template-columns:70px 1fr 1fr 1fr;gap:16px;margin-bottom:14px;">
+      <div></div>
+      <div style="font-family:var(--head);font-size:18px;color:var(--muted);text-transform:uppercase;text-align:center;">Single · N=1</div>
+      <div style="font-family:var(--head);font-size:18px;color:var(--muted);text-transform:uppercase;text-align:center;">Corridor · N=3–7</div>
+      <div style="font-family:var(--head);font-size:18px;color:var(--muted);text-transform:uppercase;text-align:center;">Regional · N=8–21</div>
+    </div>
+    <div style="flex:1;display:grid;grid-template-columns:70px 1fr 1fr 1fr;grid-template-rows:1fr 1fr;gap:16px;">
+      <div style="display:flex;align-items:center;justify-content:center;font-family:var(--head);font-size:18px;color:var(--muted);writing-mode:vertical-rl;text-transform:uppercase;">Cologne</div>
+      <div style="position:relative;border-radius:4px;overflow:hidden;background:var(--tile-paper);"><img src="uploads/colgone1_rendering.gif" alt="cologne1 topology" style="width:100%;height:100%;object-fit:cover;display:block;"><div style="position:absolute;bottom:8px;left:10px;font-family:var(--head);font-size:15px;color:var(--ink-soft);background:rgba(250,249,245,0.85);padding:2px 10px;border-radius:3px;">cologne1</div></div>
+      <div style="position:relative;border-radius:4px;overflow:hidden;background:var(--tile-paper);"><img src="uploads/cologne3_rendering.gif" alt="cologne3 topology" style="width:100%;height:100%;object-fit:cover;display:block;"><div style="position:absolute;bottom:8px;left:10px;font-family:var(--head);font-size:15px;color:var(--ink-soft);background:rgba(250,249,245,0.85);padding:2px 10px;border-radius:3px;">cologne3</div></div>
+      <div style="position:relative;border-radius:4px;overflow:hidden;background:var(--tile-paper);"><img src="uploads/cologne8_rendering.gif" alt="cologne8 topology" style="width:100%;height:100%;object-fit:cover;display:block;"><div style="position:absolute;bottom:8px;left:10px;font-family:var(--head);font-size:15px;color:var(--ink-soft);background:rgba(250,249,245,0.85);padding:2px 10px;border-radius:3px;">cologne8</div></div>
+      <div style="display:flex;align-items:center;justify-content:center;font-family:var(--head);font-size:18px;color:var(--muted);writing-mode:vertical-rl;text-transform:uppercase;">Ingolstadt</div>
+      <div style="position:relative;border-radius:4px;overflow:hidden;background:var(--tile-paper);"><img src="uploads/ingolstadt1_rendering.gif" alt="ingolstadt1 topology" style="width:100%;height:100%;object-fit:cover;display:block;"><div style="position:absolute;bottom:8px;left:10px;font-family:var(--head);font-size:15px;color:var(--ink-soft);background:rgba(250,249,245,0.85);padding:2px 10px;border-radius:3px;">ingolstadt1</div></div>
+      <div style="position:relative;border-radius:4px;overflow:hidden;background:var(--tile-paper);"><img src="uploads/ingolstadt7_rendering.gif" alt="ingolstadt7 topology" style="width:100%;height:100%;object-fit:cover;display:block;"><div style="position:absolute;bottom:8px;left:10px;font-family:var(--head);font-size:15px;color:var(--ink-soft);background:rgba(250,249,245,0.85);padding:2px 10px;border-radius:3px;">ingolstadt7</div></div>
+      <div style="position:relative;border-radius:4px;overflow:hidden;background:var(--tile-paper);"><img src="uploads/ingolstadt21_rendering.gif" alt="ingolstadt21 topology" style="width:100%;height:100%;object-fit:cover;display:block;"><div style="position:absolute;bottom:8px;left:10px;font-family:var(--head);font-size:15px;color:var(--ink-soft);background:rgba(250,249,245,0.85);padding:2px 10px;border-radius:3px;">ingolstadt21</div></div>
+    </div>
+    <div style="text-align:center;margin-top:22px;font-family:var(--head);font-size:18px;color:var(--muted);">RESCO benchmark — real demand: TapasCologne (DLR) &amp; InTAS. One episode = one simulated hour in SUMO.</div>
+  </section>
+
+  <section data-label="Protocol and Baselines" data-screen-label="17 Protocol" data-speaker-notes="Seven baselines spanning classical, independent-RL, and structured methods. Primary metric is mean delay. One transparency note up front: these are single-seed runs; I treat differences of a few seconds as trends, not significant rankings." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">17 — Experimental Setup</div>
+    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Protocol and baselines</h2>
+
+    <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:44px;">
+      <div>
+        <div style="font-family:var(--head);font-size:18px;color:var(--muted);text-transform:uppercase;margin-bottom:16px;">Seven baselines</div>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div style="background:var(--bg-card);border-radius:4px;padding:16px 22px;font-size:22px;">Classical — FixedTime, MaxPressure</div>
+          <div style="background:var(--bg-card);border-radius:4px;padding:16px 22px;font-size:22px;">Independent RL — IDQN, IPPO, IndSAC</div>
+          <div style="background:var(--bg-card);border-radius:4px;padding:16px 22px;font-size:22px;">Structured — FRAP, CoLight</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-family:var(--head);font-size:18px;color:var(--muted);text-transform:uppercase;margin-bottom:16px;">Protocol</div>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div style="background:var(--bg-card);border-radius:4px;padding:16px 22px;font-size:22px;">200 training episodes</div>
+          <div style="background:var(--bg-card);border-radius:4px;padding:16px 22px;font-size:22px;">Evaluated every 5 episodes on a held-out demand seed</div>
+          <div style="background:var(--bg-card);border-radius:4px;padding:16px 22px;font-size:22px;">Best-validation checkpoint reported</div>
+          <div style="background:var(--bg-card);border-radius:4px;padding:16px 22px;font-size:22px;">Primary metric: mean delay</div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:28px;background:#F1E2D9;border-radius:4px;padding:18px 26px;font-size:21px;color:var(--accent-deep);">Single-seed runs (seed 0) — resource constrained. Results are directional; treat small differences as trends, not rankings.</div>
+  </section>
+
+  <section data-label="Demo" data-screen-label="18 Demo" data-speaker-notes="Same hour of traffic on ingolstadt21, same demand seed. Left: the deployed fixed-time plan -- mean delay 145.4 seconds, watch the queues build and spill back. Right: FGSv3-PPO holding mean delay to 68.4 seconds by anticipating incoming platoons." style="width:100%;height:100%;background:var(--ink);position:relative;font-family:var(--body);color:var(--tile-paper);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent);text-transform:uppercase;">18 — Demo</div>
+    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:12px 0 20px 0;">Watch the policy work</h2>
+
+    <div style="flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;gap:32px;">
+      <div style="background:rgba(245,240,232,0.06);border-radius:4px;display:flex;flex-direction:column;overflow:hidden;min-height:0;">
+        <div style="flex:1;min-height:0;position:relative;overflow:hidden;background:var(--tile-paper);">
+          <img src="uploads/ingolstadt21_fixed_time.gif" alt="FixedTime rollout, ingolstadt21" style="width:100%;height:100%;object-fit:cover;object-position:top;display:block;">
+        </div>
+        <div style="padding:12px 24px;font-family:var(--head);font-size:15px;color:var(--muted);"><strong style="color:#D9D6C9;">FixedTime</strong> — ingolstadt21, mean delay 145.4 s, queues build and spill back.</div>
+      </div>
+      <div style="background:rgba(217,119,87,0.12);border-radius:4px;display:flex;flex-direction:column;border:2px solid var(--accent);overflow:hidden;min-height:0;">
+        <div style="flex:1;min-height:0;position:relative;overflow:hidden;background:var(--tile-paper);">
+          <img src="uploads/ingolstadt21_fgsv3_ppo.gif" alt="FGSv3-PPO rollout, ingolstadt21" style="width:100%;height:100%;object-fit:cover;object-position:top;display:block;">
+        </div>
+        <div style="padding:12px 24px;font-family:var(--head);font-size:15px;color:#E8C9BB;"><strong style="color:var(--accent);">FGSv3-PPO</strong> — same demand, same clock, mean delay 68.4 s, queues stay short.</div>
+      </div>
+    </div>
+    <div style="margin-top:12px;font-family:var(--head);font-size:15px;color:var(--muted);">Rollout recordings, ingolstadt21 (N=21) — same demand seed and simulated hour for both.</div>
+  </section>
+
+  <section data-label="Main Results" data-screen-label="19 Main Results" data-speaker-notes="Big picture across all six scenarios. At single intersections everyone converges to similar delay. At corridor scale independent methods hold their own. At regional scale, differences explode." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">19 — Results</div>
+    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Main results across scale tiers</h2>
+
+    <div style="flex:1;display:flex;align-items:flex-end;justify-content:space-around;background:var(--bg-card);border-radius:4px;padding:40px 50px 30px;gap:40px;">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:14px;">
+        <div style="display:flex;align-items:flex-end;gap:8px;height:280px;">
+          <div style="width:34px;height:161px;background:var(--muted);border-radius:3px 3px 0 0;position:relative;"><div style="position:absolute;top:-24px;left:0;right:0;text-align:center;font-family:var(--head);font-size:14px;">54.6</div></div>
+          <div style="width:34px;height:115px;background:#9DAE84;border-radius:3px 3px 0 0;position:relative;"><div style="position:absolute;top:-24px;left:0;right:0;text-align:center;font-family:var(--head);font-size:14px;">28.1</div></div>
+          <div style="width:34px;height:104px;background:#9DAE84;border-radius:3px 3px 0 0;position:relative;"><div style="position:absolute;top:-24px;left:0;right:0;text-align:center;font-family:var(--head);font-size:14px;">22.8</div></div>
+          <div style="width:34px;height:132px;background:var(--tile-clay);border-radius:3px 3px 0 0;position:relative;"><div style="position:absolute;top:-24px;left:0;right:0;text-align:center;font-family:var(--head);font-size:14px;">37.0</div></div>
+          <div style="width:34px;height:104px;background:var(--accent);border-radius:3px 3px 0 0;position:relative;border:3px solid var(--ink);"><div style="position:absolute;top:-24px;left:0;right:0;text-align:center;font-family:var(--head);font-size:14px;font-weight:600;">23.0</div></div>
+        </div>
+        <div style="font-family:var(--head);font-weight:500;font-size:21px;">cologne1</div>
+        <div style="font-family:var(--head);font-size:15px;color:var(--muted);text-transform:uppercase;">Single · N=1</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:14px;">
+        <div style="display:flex;align-items:flex-end;gap:8px;height:280px;">
+          <div style="width:34px;height:241px;background:var(--muted);border-radius:3px 3px 0 0;position:relative;"><div style="position:absolute;top:-24px;left:0;right:0;text-align:center;font-family:var(--head);font-size:14px;">122.9</div></div>
+          <div style="width:34px;height:127px;background:#9DAE84;border-radius:3px 3px 0 0;position:relative;"><div style="position:absolute;top:-24px;left:0;right:0;text-align:center;font-family:var(--head);font-size:14px;">34.4</div></div>
+          <div style="width:34px;height:107px;background:#9DAE84;border-radius:3px 3px 0 0;position:relative;"><div style="position:absolute;top:-24px;left:0;right:0;text-align:center;font-family:var(--head);font-size:14px;">24.1</div></div>
+          <div style="width:34px;height:149px;background:var(--tile-clay);border-radius:3px 3px 0 0;position:relative;"><div style="position:absolute;top:-24px;left:0;right:0;text-align:center;font-family:var(--head);font-size:14px;">47.0</div></div>
+          <div style="width:34px;height:111px;background:var(--accent);border-radius:3px 3px 0 0;position:relative;border:3px solid var(--ink);"><div style="position:absolute;top:-24px;left:0;right:0;text-align:center;font-family:var(--head);font-size:14px;font-weight:600;">26.1</div></div>
+        </div>
+        <div style="font-family:var(--head);font-weight:500;font-size:21px;">ingolstadt7</div>
+        <div style="font-family:var(--head);font-size:15px;color:var(--muted);text-transform:uppercase;">Corridor · N=7</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:14px;">
+        <div style="display:flex;align-items:flex-end;gap:8px;height:280px;">
+          <div style="width:34px;height:262px;background:var(--muted);border-radius:3px 3px 0 0;position:relative;"><div style="position:absolute;top:-24px;left:0;right:0;text-align:center;font-family:var(--head);font-size:14px;">145.7</div></div>
+          <div style="width:34px;height:193px;background:#9DAE84;border-radius:3px 3px 0 0;position:relative;"><div style="position:absolute;top:-24px;left:0;right:0;text-align:center;font-family:var(--head);font-size:14px;">78.7</div></div>
+          <div style="width:34px;height:178px;background:#9DAE84;border-radius:3px 3px 0 0;position:relative;"><div style="position:absolute;top:-24px;left:0;right:0;text-align:center;font-family:var(--head);font-size:14px;">67.2</div></div>
+          <div style="width:34px;height:280px;background:var(--tile-clay);border-radius:3px 3px 0 0;position:relative;"><div style="position:absolute;top:-24px;left:0;right:0;text-align:center;font-family:var(--head);font-size:14px;">216.8</div></div>
+          <div style="width:34px;height:180px;background:var(--accent);border-radius:3px 3px 0 0;position:relative;border:3px solid var(--ink);"><div style="position:absolute;top:-24px;left:0;right:0;text-align:center;font-family:var(--head);font-size:14px;font-weight:600;">68.4</div></div>
+        </div>
+        <div style="font-family:var(--head);font-weight:500;font-size:21px;">ingolstadt21</div>
+        <div style="font-family:var(--head);font-size:15px;color:var(--muted);text-transform:uppercase;">Regional · N=21</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:26px;margin-top:22px;font-family:var(--head);font-size:16px;color:var(--ink-soft);flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:8px;"><div style="width:16px;height:16px;background:var(--muted);border-radius:2px;"></div>FixedTime</div>
+      <div style="display:flex;align-items:center;gap:8px;"><div style="width:16px;height:16px;background:#9DAE84;border-radius:2px;"></div>DQN / PPO</div>
+      <div style="display:flex;align-items:center;gap:8px;"><div style="width:16px;height:16px;background:var(--tile-clay);border-radius:2px;"></div>CoLight</div>
+      <div style="display:flex;align-items:center;gap:8px;"><div style="width:16px;height:16px;background:var(--accent);border:2px solid var(--ink);border-radius:2px;"></div>Best FGS variant</div>
+      <div style="margin-left:auto;">Mean delay (s), lower is better — three representative scenarios of six tested</div>
+    </div>
+  </section>
+
+  <section data-label="Headline Regional Scale" data-screen-label="20 Headline" data-speaker-notes="On the largest scenario, FGS beats the published graph-based method CoLight by 68% and value-based DQN by 13%, reaching parity with a strong tuned PPO. First-generation FGS scored 234.9 s here; the architecture repairs recovered 71%." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">20 — Results</div>
+    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Headline: regional scale</h2>
+
+    <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:40px;">
+      <div style="background:var(--bg-card);border-radius:4px;padding:36px;display:flex;flex-direction:column;">
+        <div style="font-family:var(--head);font-weight:500;font-size:26px;margin-bottom:20px;">ingolstadt21 (N=21)</div>
+        <div style="display:flex;flex-direction:column;gap:12px;flex:1;justify-content:center;">
+          <div style="display:flex;align-items:center;gap:16px;"><div style="width:120px;font-family:var(--head);font-size:17px;">CoLight</div><div style="flex:1;height:28px;position:relative;"><div style="position:absolute;left:0;top:0;bottom:0;width:100%;background:var(--tile-clay);border-radius:3px;"></div></div><div style="width:80px;font-family:var(--head);font-size:17px;text-align:right;">216.8 s</div></div>
+          <div style="display:flex;align-items:center;gap:16px;"><div style="width:120px;font-family:var(--head);font-size:17px;">DQN</div><div style="flex:1;height:28px;position:relative;"><div style="position:absolute;left:0;top:0;bottom:0;width:36.3%;background:#9DAE84;border-radius:3px;"></div></div><div style="width:80px;font-family:var(--head);font-size:17px;text-align:right;">78.7 s</div></div>
+          <div style="display:flex;align-items:center;gap:16px;"><div style="width:120px;font-family:var(--head);font-size:17px;font-weight:600;">FGSv3-PPO</div><div style="flex:1;height:28px;position:relative;"><div style="position:absolute;left:0;top:0;bottom:0;width:31.6%;background:var(--accent);border-radius:3px;border:2px solid var(--ink);"></div></div><div style="width:80px;font-family:var(--head);font-size:17px;text-align:right;font-weight:600;">68.4 s</div></div>
+          <div style="display:flex;align-items:center;gap:16px;"><div style="width:120px;font-family:var(--head);font-size:17px;">PPO</div><div style="flex:1;height:28px;position:relative;"><div style="position:absolute;left:0;top:0;bottom:0;width:31%;background:#9DAE84;border-radius:3px;"></div></div><div style="width:80px;font-family:var(--head);font-size:17px;text-align:right;">67.2 s</div></div>
+        </div>
+        <div style="font-family:var(--head);font-weight:500;font-size:23px;color:var(--accent-dark);margin-top:20px;">−68% vs CoLight · −13% vs DQN · parity with PPO</div>
+      </div>
+      <div style="background:var(--bg-card);border-radius:4px;padding:36px;display:flex;flex-direction:column;">
+        <div style="font-family:var(--head);font-weight:500;font-size:26px;margin-bottom:20px;">cologne8 (N=8)</div>
+        <div style="display:flex;flex-direction:column;gap:12px;flex:1;justify-content:center;">
+          <div style="display:flex;align-items:center;gap:16px;"><div style="width:120px;font-family:var(--head);font-size:17px;">CoLight</div><div style="flex:1;height:28px;position:relative;"><div style="position:absolute;left:0;top:0;bottom:0;width:100%;background:var(--tile-clay);border-radius:3px;"></div></div><div style="width:80px;font-family:var(--head);font-size:17px;text-align:right;">51.8 s</div></div>
+          <div style="display:flex;align-items:center;gap:16px;"><div style="width:120px;font-family:var(--head);font-size:17px;">FRAP</div><div style="flex:1;height:28px;position:relative;"><div style="position:absolute;left:0;top:0;bottom:0;width:86.7%;background:#9DAE84;border-radius:3px;"></div></div><div style="width:80px;font-family:var(--head);font-size:17px;text-align:right;">44.9 s</div></div>
+          <div style="display:flex;align-items:center;gap:16px;"><div style="width:120px;font-family:var(--head);font-size:17px;font-weight:600;">FGSS</div><div style="flex:1;height:28px;position:relative;"><div style="position:absolute;left:0;top:0;bottom:0;width:42.9%;background:var(--accent);border-radius:3px;border:2px solid var(--ink);"></div></div><div style="width:80px;font-family:var(--head);font-size:17px;text-align:right;font-weight:600;">22.2 s</div></div>
+          <div style="display:flex;align-items:center;gap:16px;"><div style="width:120px;font-family:var(--head);font-size:17px;">PPO</div><div style="flex:1;height:28px;position:relative;"><div style="position:absolute;left:0;top:0;bottom:0;width:42.3%;background:#9DAE84;border-radius:3px;"></div></div><div style="width:80px;font-family:var(--head);font-size:17px;text-align:right;">21.9 s</div></div>
+        </div>
+        <div style="font-family:var(--head);font-weight:500;font-size:23px;color:var(--accent-dark);margin-top:20px;">−57% vs CoLight</div>
+      </div>
+    </div>
+    <div style="margin-top:24px;font-size:22px;color:var(--ink-soft);">Graph-aware FGS dominates the other graph-based method decisively, and reaches parity with tuned independent PPO. First-generation FGS scored 234.9 s here — the architecture repairs recovered 71% of that gap.</div>
+  </section>
+
+  <section data-label="Beyond Mean Delay" data-screen-label="21 Beyond Mean Delay" data-speaker-notes="Delay parity with PPO is only half the picture. The multi-metric radar shows FGSv3-PPO is strongest on waiting time and queue length on ingolstadt21, with PPO and IndSAC only close on delay and trip time. The MFD tells the same story spatially: FGSv3-PPO holds a compact high-flow operating band, where PPO drifts into more dispersed, lower-flow states -- same average, less reliable underneath." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">21 — Results</div>
+    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Delay parity isn't the whole story</h2>
+
+    <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:40px;">
+      <div style="background:var(--bg-card);border-radius:4px;padding:36px;display:flex;flex-direction:column;">
+        <div style="font-family:var(--head);font-weight:500;font-size:25px;margin-bottom:20px;">Multi-metric comparison — ingolstadt21</div>
+        <div style="display:flex;flex-direction:column;gap:12px;flex:1;justify-content:center;">
+          <div style="display:flex;align-items:center;justify-content:space-between;background:var(--tile-paper);border-radius:3px;padding:16px 22px;"><div style="font-size:22px;">Mean delay</div><div style="font-family:var(--head);font-weight:600;font-size:18px;color:var(--ink-soft);">parity</div></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;background:#F1E8E3;border-radius:3px;padding:16px 22px;border:2px solid var(--accent);"><div style="font-size:22px;">Waiting time</div><div style="font-family:var(--head);font-weight:600;font-size:18px;color:var(--accent-dark);">FGSv3-PPO wins</div></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;background:#F1E8E3;border-radius:3px;padding:16px 22px;border:2px solid var(--accent);"><div style="font-size:22px;">Queue length</div><div style="font-family:var(--head);font-weight:600;font-size:18px;color:var(--accent-dark);">FGSv3-PPO wins</div></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;background:var(--tile-paper);border-radius:3px;padding:16px 22px;"><div style="font-size:22px;">Trip time</div><div style="font-family:var(--head);font-weight:600;font-size:18px;color:var(--ink-soft);">PPO / IndSAC close</div></div>
+        </div>
+        <div style="font-size:20px;color:var(--ink-soft);margin-top:18px;">Radar comparison across all four RESCO metrics: FGSv3-PPO leads on two, ties on delay, only trails on trip time.</div>
+      </div>
+      <div style="background:var(--bg-card);border-radius:4px;padding:36px;display:flex;flex-direction:column;">
+        <div style="font-family:var(--head);font-weight:500;font-size:25px;margin-bottom:18px;">Same average, different operating regime</div>
+        <div style="flex:1;background:var(--tile-paper);border-radius:4px;overflow:hidden;margin-bottom:18px;">
+          <img src="uploads/resco_ingolstadt21_mfd_density_flow_fgsv3_ppo_vs_ppo-6c32c367.png" alt="MFD density vs. flow, ingolstadt21, FGSv3-PPO vs. PPO" style="width:100%;height:100%;object-fit:contain;display:block;">
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;background:#F1E2D9;border-radius:3px;padding:14px 20px;">
+          <div style="width:26px;height:26px;border-radius:50%;background:var(--accent-dark);flex-shrink:0;"></div>
+          <div style="font-size:20px;color:var(--accent-deep);">FGSv3-PPO stays in a compact high-flow band; PPO drifts into more dispersed, lower-flow states at similar density.</div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:24px;font-size:22px;color:var(--ink-soft);">Mean delay ties FGSv3-PPO to PPO, but underneath: shorter waits, shorter queues, and a more consistent traffic-flow regime — exactly what graph-aware coordination should buy you.</div>
+  </section>
+
+  <section data-label="Ablation Encoder and Attention" data-screen-label="22 Ablation I" data-speaker-notes="This is the design-space payoff -- the two assumptions from the related-work slide, tested. FRAP's phase-competition prior assumes every phase controls an opposing pair of movements; German junctions with mixed phase counts violate this." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">22 — Ablation</div>
+    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Ablation I: encoder &amp; attention</h2>
+
+    <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:40px;">
+      <div style="background:var(--bg-card);border-radius:4px;padding:36px;display:flex;flex-direction:column;">
+        <div style="font-family:var(--head);font-weight:500;font-size:24px;margin-bottom:18px;">MLP vs. FRAP encoder</div>
+        <div style="flex:1;display:flex;align-items:flex-end;gap:60px;justify-content:center;padding-bottom:10px;">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+            <div style="display:flex;align-items:flex-end;gap:10px;height:180px;">
+              <div style="width:40px;height:90px;background:var(--good);border-radius:3px 3px 0 0;position:relative;"><div style="position:absolute;top:-24px;left:0;right:0;text-align:center;font-family:var(--head);font-size:14px;">235 s</div></div>
+              <div style="width:40px;height:180px;background:var(--accent-dark);border-radius:3px 3px 0 0;position:relative;"><div style="position:absolute;top:-24px;left:0;right:0;text-align:center;font-family:var(--head);font-size:14px;">617 s</div></div>
+            </div>
+            <div style="font-family:var(--head);font-size:15px;color:var(--muted);">MLP &nbsp;&nbsp;&nbsp;&nbsp;FRAP</div>
+          </div>
+        </div>
+        <div style="font-family:var(--head);font-weight:500;font-size:24px;color:var(--accent-dark);text-align:center;">2.6× worse delay at N=21</div>
+      </div>
+      <div style="background:var(--bg-card);border-radius:4px;padding:36px;display:flex;flex-direction:column;">
+        <div style="font-family:var(--head);font-weight:500;font-size:24px;margin-bottom:18px;">GATv2 vs. GAT</div>
+        <div style="flex:1;display:flex;align-items:flex-end;gap:60px;justify-content:center;padding-bottom:10px;">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+            <div style="display:flex;align-items:flex-end;gap:10px;height:180px;">
+              <div style="width:40px;height:90px;background:var(--good);border-radius:3px 3px 0 0;position:relative;"><div style="position:absolute;top:-24px;left:0;right:0;text-align:center;font-family:var(--head);font-size:14px;">234.9 s</div></div>
+              <div style="width:40px;height:180px;background:var(--accent-dark);border-radius:3px 3px 0 0;position:relative;"><div style="position:absolute;top:-24px;left:0;right:0;text-align:center;font-family:var(--head);font-size:14px;">492.0 s</div></div>
+            </div>
+            <div style="font-family:var(--head);font-size:15px;color:var(--muted);">GATv2 &nbsp;&nbsp;&nbsp;&nbsp;GAT</div>
+          </div>
+        </div>
+        <div style="font-family:var(--head);font-weight:500;font-size:24px;color:var(--accent-dark);text-align:center;">53% lower delay at N=21 · ~none at N=8</div>
+      </div>
+    </div>
+    <div style="margin-top:24px;font-size:22px;color:var(--ink-soft);">FRAP assumes every phase controls an opposing pair of movements — German 2/4/6-phase junctions violate that, and the penalty grows with scale. Dynamic attention (GATv2) only matters where neighbors are heterogeneous.</div>
+  </section>
+
+  <section data-label="Ablation RL Algorithm" data-screen-label="23 Ablation II" data-speaker-notes="Algorithm choice is conditional: SAC wins at moderate scale but needed the factored critic to run at N=21. SAC discovered reward hacking -- I caught it because delay and queue told contradictory stories, and excluded those checkpoints." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">23 — Ablation</div>
+    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Ablation II: RL algorithm &amp; an honest failure mode</h2>
+
+    <div style="flex:1;display:grid;grid-template-columns:1fr 1.4fr;gap:40px;">
+      <div style="background:var(--bg-card);border-radius:4px;padding:36px;display:flex;flex-direction:column;">
+        <div style="font-family:var(--head);font-weight:500;font-size:24px;margin-bottom:18px;">SAC vs. PPO (cologne8)</div>
+        <div style="flex:1;display:flex;align-items:flex-end;gap:30px;justify-content:center;">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+            <div style="display:flex;align-items:flex-end;gap:10px;height:160px;">
+              <div style="width:40px;height:148px;background:var(--accent);border-radius:3px 3px 0 0;position:relative;"><div style="position:absolute;top:-24px;left:0;right:0;text-align:center;font-family:var(--head);font-size:14px;">22.2 s</div></div>
+              <div style="width:40px;height:160px;background:#9DAE84;border-radius:3px 3px 0 0;position:relative;"><div style="position:absolute;top:-24px;left:0;right:0;text-align:center;font-family:var(--head);font-size:14px;">24.0 s</div></div>
+            </div>
+            <div style="font-family:var(--head);font-size:15px;color:var(--muted);">SAC &nbsp;&nbsp;&nbsp;&nbsp;PPO</div>
+          </div>
+        </div>
+        <div style="font-family:var(--head);font-weight:500;font-size:21px;color:var(--accent-dark);text-align:center;">SAC +8% at moderate scale — if the critic scales</div>
+      </div>
+      <div style="background:var(--bg-card);border-radius:4px;padding:36px;display:flex;flex-direction:column;">
+        <div style="font-family:var(--head);font-weight:500;font-size:24px;margin-bottom:12px;">The reward-gaming diagnostic</div>
+        <div style="flex:1;display:flex;align-items:center;gap:40px;">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+            <div style="font-family:var(--head);font-size:15px;color:var(--muted);">mean delay</div>
+            <div style="width:56px;height:40px;background:var(--good);border-radius:3px;"></div>
+            <div style="font-family:var(--head);font-size:14px;">anomalously low</div>
+          </div>
+          <div style="font-size:32px;color:var(--accent-dark);">+</div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+            <div style="font-family:var(--head);font-size:15px;color:var(--muted);">mean queue</div>
+            <div style="width:56px;height:130px;background:var(--accent-dark);border-radius:3px;"></div>
+            <div style="font-family:var(--head);font-size:14px;">46.1 veh/lane</div>
+          </div>
+          <div style="flex:1;background:#F1E2D9;border-radius:4px;padding:18px 22px;font-size:20px;color:var(--accent-deep);">Physically impossible pair — excluded from results (‡)</div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:24px;font-size:22px;color:var(--ink-soft);">SUMO's waiting-time counter pauses the moment a vehicle moves — rapid phase cycling harvests reward while queues grow. PPO is structurally immune: on-policy updates see the queue blow-up immediately. Fix: pressure-based reward.</div>
+  </section>
+
+  <section data-label="Central Finding" data-screen-label="24 Central Finding" data-speaker-notes="Graph communication is a no-op at one intersection, unnecessary at corridor scale where local sensing suffices, and decisive at regional scale where congestion propagates beyond any single agent's horizon." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">24 — Results</div>
+    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Benefit grows with scale</h2>
+
+    <div style="flex:1;display:flex;align-items:flex-end;background:var(--bg-card);border-radius:4px;padding:50px 70px 40px;gap:70px;justify-content:center;">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:14px;">
+        <div style="display:flex;align-items:flex-end;gap:10px;height:280px;">
+          <div style="width:44px;height:6px;background:var(--accent);border-radius:3px;position:relative;"><div style="position:absolute;top:-24px;left:0;right:0;text-align:center;font-family:var(--head);font-size:14px;">~0%</div></div>
+          <div style="width:44px;height:6px;background:transparent;border:2px solid var(--ink);border-radius:3px;position:relative;"><div style="position:absolute;top:-24px;left:0;right:0;text-align:center;font-family:var(--head);font-size:14px;">~0%</div></div>
+        </div>
+        <div style="font-family:var(--head);font-weight:500;font-size:21px;">N = 1</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:14px;">
+        <div style="display:flex;align-items:flex-end;gap:10px;height:280px;">
+          <div style="width:44px;height:180px;background:var(--accent);border-radius:3px;position:relative;"><div style="position:absolute;top:-24px;left:0;right:0;text-align:center;font-family:var(--head);font-size:14px;">44%</div></div>
+          <div style="width:44px;height:36px;background:transparent;border:2px solid var(--ink);border-radius:3px;position:relative;"><div style="position:absolute;top:-24px;left:0;right:0;text-align:center;font-family:var(--head);font-size:14px;">−8%</div></div>
+        </div>
+        <div style="font-family:var(--head);font-weight:500;font-size:21px;">N = 3–7</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:14px;">
+        <div style="display:flex;align-items:flex-end;gap:10px;height:280px;">
+          <div style="width:44px;height:280px;background:var(--accent);border-radius:3px;position:relative;"><div style="position:absolute;top:-24px;left:0;right:0;text-align:center;font-family:var(--head);font-size:14px;font-weight:600;">68%</div></div>
+          <div style="width:44px;height:8px;background:transparent;border:2px solid var(--ink);border-radius:3px;position:relative;"><div style="position:absolute;top:-24px;left:0;right:0;text-align:center;font-family:var(--head);font-size:14px;">−2%</div></div>
+        </div>
+        <div style="font-family:var(--head);font-weight:500;font-size:21px;">N = 21</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:26px;margin-top:20px;font-family:var(--head);font-size:16px;color:var(--ink-soft);">
+      <div style="display:flex;align-items:center;gap:8px;"><div style="width:16px;height:16px;background:var(--accent);border-radius:2px;"></div>vs. CoLight</div>
+      <div style="display:flex;align-items:center;gap:8px;"><div style="width:16px;height:16px;border:2px solid var(--ink);border-radius:2px;"></div>vs. standalone PPO</div>
+    </div>
+    <div style="text-align:center;margin-top:20px;font-family:var(--head);font-weight:500;font-size:26px;color:var(--accent-dark);">Coordination pays where local observation ends (N ≳ 8).</div>
+  </section>
+
+  <section data-label="Answering the RQs" data-screen-label="25 Answers" data-speaker-notes="Walk each card in about 25 seconds. Phrase the MRQ answer as the thesis's takeaway design guideline for anyone building MARL-TSC on European networks." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">25 — Conclusion</div>
+    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Back to the research questions</h2>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:28px;margin-bottom:28px;">
+      <div style="background:var(--bg-card);border-radius:4px;padding:30px;display:flex;flex-direction:column;gap:12px;">
+        <div style="font-family:var(--head);font-weight:600;font-size:17px;color:var(--good);">SQ1 ✓</div>
+        <div style="font-size:21px;line-height:1.5;">Competitive at scale: −68% vs CoLight, −13% vs DQN, parity with PPO on ingolstadt21.</div>
+      </div>
+      <div style="background:var(--bg-card);border-radius:4px;padding:30px;display:flex;flex-direction:column;gap:12px;">
+        <div style="font-family:var(--head);font-weight:600;font-size:17px;color:var(--good);">SQ2 ✓</div>
+        <div style="font-size:21px;line-height:1.5;">Encoder dominates (up to 2.6×); GATv2 &gt; GAT only at scale (53%); SAC needs the factored critic and a gaming-proof reward.</div>
+      </div>
+      <div style="background:var(--bg-card);border-radius:4px;padding:30px;display:flex;flex-direction:column;gap:12px;">
+        <div style="font-family:var(--head);font-weight:600;font-size:17px;color:var(--good);">SQ3 ✓</div>
+        <div style="font-size:21px;line-height:1.5;">Component benefits are scale-gated: consistent graph advantage from N ≈ 8–21 on German topologies.</div>
+      </div>
+    </div>
+    <div style="background:var(--ink);color:var(--tile-paper);border-radius:4px;padding:32px 40px;">
+      <div style="font-family:var(--head);font-weight:600;font-size:18px;letter-spacing:0.1em;color:var(--accent);text-transform:uppercase;margin-bottom:12px;">MRQ — Yes, competitive and scalable</div>
+      <div style="font-size:23px;line-height:1.6;">Priority order for anyone building MARL-TSC on European networks: ① encoder–topology compatibility · ② attention expressiveness · ③ critic scalability.</div>
+    </div>
+  </section>
+
+  <section data-label="Contributions" data-screen-label="26 Contributions" data-speaker-notes="End on the analytical contribution -- the field gets reusable design guidelines, not just one more architecture. Name multi-seed validation yourself as the first follow-on step. Thank the committee; invite questions." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">26 — Conclusion</div>
+    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Contributions &amp; future work</h2>
+
+    <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:40px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+        <div style="background:var(--bg-card);border-radius:4px;padding:26px;">
+          <div style="font-family:var(--head);font-weight:600;font-size:16px;color:var(--accent-dark);text-transform:uppercase;margin-bottom:10px;">Framework</div>
+          <div style="font-size:20px;line-height:1.5;">Open-source SUMO / RLlib / PyG stack.</div>
+        </div>
+        <div style="background:var(--bg-card);border-radius:4px;padding:26px;">
+          <div style="font-family:var(--head);font-weight:600;font-size:16px;color:var(--accent-dark);text-transform:uppercase;margin-bottom:10px;">Algorithmic</div>
+          <div style="font-size:20px;line-height:1.5;">Three-generation FGS; factored O(d<sub>c</sub>) critic.</div>
+        </div>
+        <div style="background:var(--bg-card);border-radius:4px;padding:26px;">
+          <div style="font-family:var(--head);font-weight:600;font-size:16px;color:var(--accent-dark);text-transform:uppercase;margin-bottom:10px;">Empirical</div>
+          <div style="font-size:20px;line-height:1.5;">First graph-MARL evaluation on all six German RESCO scenarios, seven baselines.</div>
+        </div>
+        <div style="background:var(--bg-card);border-radius:4px;padding:26px;">
+          <div style="font-family:var(--head);font-weight:600;font-size:16px;color:var(--accent-dark);text-transform:uppercase;margin-bottom:10px;">Analytical</div>
+          <div style="font-size:20px;line-height:1.5;">Design guidelines; FRAP-transfer negative result.</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:18px;justify-content:center;">
+        <div style="font-family:var(--head);font-size:18px;color:var(--muted);text-transform:uppercase;">Future work</div>
+        <div style="background:var(--bg-card);border-radius:4px;padding:20px 26px;font-size:21px;display:flex;align-items:center;gap:14px;"><span style="color:var(--accent);font-size:26px;">→</span>Pressure-based reward</div>
+        <div style="background:var(--accent);color:#fff;border-radius:4px;padding:20px 26px;font-size:21px;display:flex;align-items:center;gap:14px;"><span style="font-size:26px;">→</span>Multi-seed validation (top priority)</div>
+        <div style="background:var(--bg-card);border-radius:4px;padding:20px 26px;font-size:21px;display:flex;align-items:center;gap:14px;"><span style="color:var(--accent);font-size:26px;">→</span>Hierarchical scaling beyond N=21 + attention interpretability</div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:28px;font-family:var(--body);font-size:25px;font-style:italic;color:var(--ink-soft);">Thank you.</div>
+  </section>
+
+  <section data-label="B1 Hypotheses" data-screen-label="B1 Hypotheses" data-speaker-notes="For the what-were-your-hypotheses question. H1 partial support, H2 confirmed in selected scenarios, H3 confirmed, H4 confirmed." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--muted);text-transform:uppercase;">B1 — Backup</div>
+    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Hypotheses &amp; verdicts</h2>
+
+    <div style="flex:1;display:flex;flex-direction:column;gap:20px;justify-content:center;">
+      <div style="display:grid;grid-template-columns:60px 1fr 260px;align-items:center;gap:24px;background:var(--bg-card);border-radius:4px;padding:26px 34px;">
+        <div style="font-family:var(--head);font-weight:600;font-size:22px;color:var(--muted);">H1</div>
+        <div style="font-size:24px;line-height:1.4;">Graph communication improves coordination beyond independent RL.</div>
+        <div style="font-family:var(--head);font-weight:600;font-size:19px;color:var(--accent-dark);background:#F1E2D9;border-radius:3px;padding:10px 16px;text-align:center;">Partial support</div>
+      </div>
+      <div style="display:grid;grid-template-columns:60px 1fr 260px;align-items:center;gap:24px;background:var(--bg-card);border-radius:4px;padding:26px 34px;">
+        <div style="font-family:var(--head);font-weight:600;font-size:22px;color:var(--muted);">H2</div>
+        <div style="font-size:24px;line-height:1.4;">GATv2's dynamic attention outperforms GAT on heterogeneous neighbors.</div>
+        <div style="font-family:var(--head);font-weight:600;font-size:19px;color:#fff;background:var(--good);border-radius:3px;padding:10px 16px;text-align:center;">Confirmed (selected)</div>
+      </div>
+      <div style="display:grid;grid-template-columns:60px 1fr 260px;align-items:center;gap:24px;background:var(--bg-card);border-radius:4px;padding:26px 34px;">
+        <div style="font-family:var(--head);font-weight:600;font-size:22px;color:var(--muted);">H3</div>
+        <div style="font-size:24px;line-height:1.4;">Centralized critics don't scale; a factored critic is required for SAC at N=21.</div>
+        <div style="font-family:var(--head);font-weight:600;font-size:19px;color:#fff;background:var(--good);border-radius:3px;padding:10px 16px;text-align:center;">Confirmed</div>
+      </div>
+      <div style="display:grid;grid-template-columns:60px 1fr 260px;align-items:center;gap:24px;background:var(--bg-card);border-radius:4px;padding:26px 34px;">
+        <div style="font-family:var(--head);font-weight:600;font-size:22px;color:var(--muted);">H4</div>
+        <div style="font-size:24px;line-height:1.4;">Phase-competition encoders (FRAP) do not transfer to irregular topologies.</div>
+        <div style="font-family:var(--head);font-weight:600;font-size:19px;color:#fff;background:var(--good);border-radius:3px;padding:10px 16px;text-align:center;">Confirmed</div>
+      </div>
+    </div>
+  </section>
+
+  <section data-label="B2 Hyperparameters" data-screen-label="B2 Hyperparameters" data-speaker-notes="For reproducibility questions. Full architecture and training hyperparameter tables live in the thesis appendix." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--muted);text-transform:uppercase;">B2 — Backup</div>
+    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Full hyperparameter tables</h2>
+
+    <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:40px;">
+      <div style="background:var(--bg-card);border-radius:4px;padding:36px;display:flex;flex-direction:column;">
+        <div style="font-family:var(--head);font-weight:500;font-size:26px;margin-bottom:18px;">Architecture (tab:arch_params)</div>
+        <div style="display:flex;flex-direction:column;gap:10px;font-size:21px;color:var(--ink-soft);margin-bottom:20px;">
+          <div>Encoder hidden dim · MLP / FRAP layers</div>
+          <div>GATv2 heads · attention dim · dropout</div>
+          <div>Factored critic input dim d<sub>c</sub></div>
+          <div>Policy / value network depth</div>
+        </div>
+        <div style="flex:1;background:repeating-linear-gradient(45deg, #DEDCD1, #DEDCD1 10px, var(--bg-card) 10px, var(--bg-card) 20px);border-radius:4px;display:flex;align-items:center;justify-content:center;">
+          <div style="font-family:var(--head);font-size:18px;color:var(--ink-soft);text-align:center;">[ full values — thesis Table: tab:arch_params ]</div>
+        </div>
+      </div>
+      <div style="background:var(--bg-card);border-radius:4px;padding:36px;display:flex;flex-direction:column;">
+        <div style="font-family:var(--head);font-weight:500;font-size:26px;margin-bottom:18px;">Training (tab:hyperparams)</div>
+        <div style="display:flex;flex-direction:column;gap:10px;font-size:21px;color:var(--ink-soft);margin-bottom:20px;">
+          <div>Optimizer (Adam) · learning rate · discount γ</div>
+          <div>Replay buffer size · batch size (DQN / SAC)</div>
+          <div>PPO clip ε · GAE λ</div>
+          <div>SAC entropy coefficient · target update τ</div>
+        </div>
+        <div style="flex:1;background:repeating-linear-gradient(45deg, #DEDCD1, #DEDCD1 10px, var(--bg-card) 10px, var(--bg-card) 20px);border-radius:4px;display:flex;align-items:center;justify-content:center;">
+          <div style="font-family:var(--head);font-size:18px;color:var(--ink-soft);text-align:center;">[ full values — thesis Table: tab:hyperparams ]</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section data-label="B3 Full Results Table" data-screen-label="B3 Full Results" data-speaker-notes="Full main-results table: ten methods across six scenarios, four metrics. Legend explains the dagger and double-dagger annotations used on slide 16." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--muted);text-transform:uppercase;">B3 — Backup</div>
+    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Full main-results table</h2>
+
+    <div style="flex:1;background:repeating-linear-gradient(45deg, var(--bg-card), var(--bg-card) 10px, #DEDCD1 10px, #DEDCD1 20px);border-radius:4px;display:flex;align-items:center;justify-content:center;">
+      <div style="font-family:var(--head);font-size:20px;color:var(--ink-soft);text-align:center;line-height:1.6;">[ full table — 10 methods × 6 scenarios × 4 metrics<br>(mean delay, waiting time, trip time, throughput) ]</div>
+    </div>
+    <div style="display:flex;gap:32px;margin-top:22px;font-size:21px;color:var(--ink-soft);">
+      <div><strong style="color:var(--ink);">†</strong> did not converge within 200 episodes</div>
+      <div><strong style="color:var(--ink);">‡</strong> excluded — reward-gaming artefact (see slide 19)</div>
+    </div>
+  </section>
+
+  <section data-label="B4 Dec-POMDP" data-screen-label="B4 Dec-POMDP" data-speaker-notes="For the formal-definition question. Formalizes the multi-agent traffic signal control problem as a Dec-POMDP." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--muted);text-transform:uppercase;">B4 — Backup</div>
+    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Dec-POMDP formalization</h2>
+
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:28px;">
+      <div style="background:var(--ink);color:var(--tile-paper);border-radius:4px;padding:36px 44px;font-family:var(--head);font-size:27px;text-align:center;">
+        ⟨ N, S, {A<sub>i</sub>}, T, {R<sub>i</sub>}, {O<sub>i</sub>}, Ω, γ ⟩
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;">
+        <div style="background:var(--bg-card);border-radius:4px;padding:30px;font-size:22px;line-height:1.7;">
+          <strong>N</strong> agents, one per signalized intersection<br>
+          <strong>S</strong> global network state (unobserved)<br>
+          <strong>O<sub>i</sub></strong> agent i's local partial observation<br>
+          <strong>A<sub>i</sub></strong> discrete phase selection
+        </div>
+        <div style="background:var(--bg-card);border-radius:4px;padding:30px;font-size:22px;line-height:1.7;">
+          <strong>T</strong> SUMO microsimulation transition dynamics<br>
+          <strong>R<sub>i</sub></strong> per-agent differential-waiting-time reward<br>
+          <strong>γ</strong> discount factor — CTDE training regime
+        </div>
+      </div>
+      <div style="font-family:var(--head);font-weight:500;font-size:30px;text-align:center;background:var(--tile-paper);border:2px solid var(--line);border-radius:4px;padding:22px;">r<sub>i</sub>(t) = W<sub>i</sub>(t−1) − W<sub>i</sub>(t)</div>
+    </div>
+  </section>
+
+  <section data-label="B5 MFD" data-screen-label="B5 MFD" data-speaker-notes="The traffic-engineering interpretation. FGSv3-PPO stays on the high-flow branch of the macroscopic fundamental diagram." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--muted);text-transform:uppercase;">B5 — Backup</div>
+    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Macroscopic fundamental diagram</h2>
+
+    <div style="flex:1;background:repeating-linear-gradient(45deg, var(--bg-card), var(--bg-card) 10px, #DEDCD1 10px, #DEDCD1 20px);border-radius:4px;display:flex;align-items:center;justify-content:center;">
+      <div style="font-family:var(--head);font-size:20px;color:var(--ink-soft);text-align:center;line-height:1.6;">[ resco_ingolstadt21_mfd_density_flow —<br>density (veh/km) vs. flow (veh/h), all methods overlaid ]</div>
+    </div>
+    <div style="margin-top:22px;font-size:23px;color:var(--ink-soft);">FGSv3-PPO stays on the high-flow branch as density rises — other baselines slide into the congested, falling-flow branch. Ties the delay result back to fundamental traffic-flow theory.</div>
+  </section>
+
+  <section data-label="B6 Train Val Curves" data-screen-label="B6 Train/Val Curves" data-speaker-notes="For overfitting and convergence questions. FGS_P shows a large train-validation gap; FGSv3-PPO is stable from episode 7 onward." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--muted);text-transform:uppercase;">B6 — Backup</div>
+    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Training vs. validation (regional)</h2>
+
+    <div style="flex:1;background:repeating-linear-gradient(45deg, var(--bg-card), var(--bg-card) 10px, #DEDCD1 10px, #DEDCD1 20px);border-radius:4px;display:flex;align-items:center;justify-content:center;">
+      <div style="font-family:var(--head);font-size:20px;color:var(--ink-soft);text-align:center;line-height:1.6;">[ fgs_versions_ingolstadt21_train_validation_delay_200ep ]</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-top:22px;">
+      <div style="background:#F1E2D9;border-radius:4px;padding:20px 26px;font-size:21px;color:var(--accent-deep);">FGS_P: train 78 s vs. validation 234.9 s — large generalization gap, overfits to training demand seed.</div>
+      <div style="background:var(--bg-card);border-radius:4px;padding:20px 26px;font-size:21px;color:var(--ink-soft);">FGSv3-PPO: validation curve stable from episode 7 — no divergence, informs the best-checkpoint choice (B9).</div>
+    </div>
+  </section>
+
+  <section data-label="B7 Factored Critic Math" data-screen-label="B7 Critic Math" data-speaker-notes="Preempts the sharpest methodological question. Input-dim derivation from 3,133 to 204, and an honest concession that two things changed at once between FGSv2 and FGSv3." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--muted);text-transform:uppercase;">B7 — Backup</div>
+    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Factored critic: the math</h2>
+
+    <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:40px;">
+      <div style="background:var(--bg-card);border-radius:4px;padding:36px;display:flex;flex-direction:column;gap:16px;">
+        <div style="font-family:var(--head);font-weight:500;font-size:25px;">Centralized critic (N=21)</div>
+        <div style="font-family:var(--head);font-size:22px;line-height:1.7;">input = N × (obs<sub>i</sub> ⊕ phase<sub>i</sub>)<br>21 × ~149 ≈ <strong style="color:var(--accent-dark);">3,133</strong></div>
+        <div style="font-size:20px;color:var(--ink-soft);">Grows linearly with N — the source of the episode-17 OOM.</div>
+      </div>
+      <div style="background:var(--bg-card);border-radius:4px;padding:36px;display:flex;flex-direction:column;gap:16px;">
+        <div style="font-family:var(--head);font-weight:500;font-size:25px;">Factored critic</div>
+        <div style="font-family:var(--head);font-size:22px;line-height:1.7;">input = GATv2-enriched local embedding<br>d<sub>c</sub> ≈ <strong style="color:var(--good);">204</strong>, independent of N</div>
+        <div style="font-size:20px;color:var(--ink-soft);">Neighborhood information still flows in via Module II — only the critic's input size stops scaling.</div>
+      </div>
+    </div>
+    <div style="margin-top:24px;background:#F1E2D9;border-radius:4px;padding:22px 30px;font-size:21px;color:var(--accent-deep);">Conceded directly: FGSv2→FGSv3 changed both the message content and the critic architecture in the same step. Their individual contributions are not decomposable from current data — a controlled partial ablation is named as follow-on work.</div>
+  </section>
+
+  <section data-label="B8 GATv2 vs GAT" data-screen-label="B8 GATv2 Eq" data-speaker-notes="Only if a committee member digs into the attention mechanism itself." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--muted);text-transform:uppercase;">B8 — Backup</div>
+    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">GATv2 vs. GAT: the equation</h2>
+
+    <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:40px;">
+      <div style="background:var(--bg-card);border-radius:4px;padding:40px;display:flex;flex-direction:column;gap:22px;">
+        <div style="font-family:var(--head);font-weight:500;font-size:25px;">GAT — static attention</div>
+        <div style="font-family:var(--head);font-size:24px;background:var(--tile-paper);border-radius:4px;padding:24px;text-align:center;">e<sub>ij</sub> = LeakyReLU(a<sup>T</sup>[Wh<sub>i</sub> ‖ Wh<sub>j</sub>])</div>
+        <div style="font-size:20px;color:var(--ink-soft);">a and W applied before the nonlinearity — ranking of neighbors is fixed once features are set, regardless of the query node.</div>
+      </div>
+      <div style="background:var(--bg-card);border-radius:4px;padding:40px;display:flex;flex-direction:column;gap:22px;border:2px solid var(--accent);">
+        <div style="font-family:var(--head);font-weight:500;font-size:25px;">GATv2 — dynamic attention</div>
+        <div style="font-family:var(--head);font-size:24px;background:var(--tile-paper);border-radius:4px;padding:24px;text-align:center;">e<sub>ij</sub> = a<sup>T</sup>LeakyReLU(W[h<sub>i</sub> ‖ h<sub>j</sub>])</div>
+        <div style="font-size:20px;color:var(--ink-soft);">Nonlinearity sits before a — attention becomes a genuine function of both sender and receiver, so ranking can flip per query node (Brody et al.).</div>
+      </div>
+    </div>
+  </section>
+
+  <section data-label="B9 Checkpoint Selection" data-screen-label="B9 Checkpoint" data-speaker-notes="Justifies best-validation checkpoint selection, citing Henderson et al., and naming the conservative alternative." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--muted);text-transform:uppercase;">B9 — Backup</div>
+    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Why best-validation checkpoint?</h2>
+
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:24px;">
+      <div style="background:var(--bg-card);border-radius:4px;padding:32px 40px;font-size:23px;line-height:1.6;">Deep RL training is unstable run-to-run (Henderson et al.) — reporting the final checkpoint can understate a policy that peaked earlier and drifted.</div>
+      <div style="background:#F1E2D9;border-radius:4px;padding:32px 40px;font-size:23px;line-height:1.6;color:var(--accent-deep);">Best-validation selection is an <strong>optimistic bound</strong>: it picks the single episode that looked best on the held-out demand seed.</div>
+      <div style="background:var(--bg-card);border-radius:4px;padding:32px 40px;font-size:23px;line-height:1.6;">Conservative alternative, reported alongside in the appendix: <strong>mean of the last 10 checkpoints</strong> — a steadier estimate of the converged policy.</div>
+    </div>
+  </section>
+
+  <section data-label="B10 Limitations" data-screen-label="B10 Limitations" data-speaker-notes="Shows the committee I know the limitations cold: single seed, reward gaming, SAC variance at N=21, and train-to-validation demand shift." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--muted);text-transform:uppercase;">B10 — Backup</div>
+    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Limitations, summarized</h2>
+
+    <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:32px;">
+      <div style="background:var(--bg-card);border-radius:4px;padding:36px;display:flex;flex-direction:column;gap:14px;">
+        <div style="font-family:var(--head);font-weight:600;font-size:19px;color:var(--accent-dark);">SINGLE SEED</div>
+        <div style="font-size:22px;line-height:1.5;">All runs use seed 0 — resource constrained. Magnitudes (2.6×, 53%) are read as trends, not statistically ranked results.</div>
+      </div>
+      <div style="background:var(--bg-card);border-radius:4px;padding:36px;display:flex;flex-direction:column;gap:14px;">
+        <div style="font-family:var(--head);font-weight:600;font-size:19px;color:var(--accent-dark);">REWARD GAMING</div>
+        <div style="font-size:22px;line-height:1.5;">SAC exploited SUMO's waiting-time counter via rapid phase cycling; caught via a delay/queue consistency check, not prevented by design.</div>
+      </div>
+      <div style="background:var(--bg-card);border-radius:4px;padding:36px;display:flex;flex-direction:column;gap:14px;">
+        <div style="font-family:var(--head);font-weight:600;font-size:19px;color:var(--accent-dark);">SAC VARIANCE AT N=21</div>
+        <div style="font-size:22px;line-height:1.5;">Even with the factored critic, SAC's off-policy updates are noisier at regional scale than PPO's on-policy updates.</div>
+      </div>
+      <div style="background:var(--bg-card);border-radius:4px;padding:36px;display:flex;flex-direction:column;gap:14px;">
+        <div style="font-family:var(--head);font-weight:600;font-size:19px;color:var(--accent-dark);">TRAIN→VAL DEMAND SHIFT</div>
+        <div style="font-size:22px;line-height:1.5;">Held-out demand seed differs from training demand; the FGS_P gap (78 s vs. 234.9 s, B6) shows this can be severe.</div>
+      </div>
+    </div>
+  </section>
+
+  <section data-label="B11 System Architecture" data-screen-label="B11 Architecture" data-speaker-notes="For infrastructure/reproducibility questions. Shows the full software stack: SUMO for simulation, sumo-rl wrapping PettingZoo's ParallelEnv, the local encoder (MLP/FRAP) feeding graphML attention (GAT/GATv2), ray rllib for actor-critic training, and Weights &amp; Biases for experiment tracking." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--muted);text-transform:uppercase;">B11 — Backup</div>
+    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">System architecture</h2>
+
+    <div style="flex:1;min-height:0;background:rgb(161,83,55);border-radius:4px;padding:20px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+      <img src="uploads/system_architecture.png" alt="System architecture: SUMO simulator feeding sumo-rl, which wraps PettingZoo ParallelEnv, a local torch encoder (MLP/FRAP), graphML attention (GAT/GATv2), and ray rllib actor-critic training, logged to Weights &amp; Biases" style="max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;">
+    </div>
+  </section>
+
+</x-import>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{}">
+class Component extends DCLogic {
+  state = { scene2: 0, landscapeRevealed: false };
+
+  carsForScene(scene) {
+    const severity = 0.65;
+    const base = [10, 22, 34, 46, 58, 70, 82, 94];
+    if (scene === 0) return base.map(l => ({ left: l, color: '#b0aea5', opacity: 0.55, delay: 0 }));
+    if (scene === 1) return base.map(l => ({ left: l, color: '#788c5d', opacity: 0.9, delay: 0 }));
+
+    // spillback scene: queue length behind int.2 scales with severity, always kept on the road strip (2%..38%)
+    const queueCount = Math.round(4 + severity * 5);
+    const availableSpan = 36;
+    const spacing = queueCount > 1 ? Math.min(5.5, availableSpan / (queueCount - 1)) : 0;
+    const queueStart = 38 - (queueCount - 1) * spacing;
+    const items = Array.from({ length: queueCount }, (_, i) => {
+      const left = queueStart + i * spacing;
+      return { left, color: left < 14 ? '#8a3f27' : '#b15a3c', opacity: 1, delay: 0 };
+    });
+    items.push({ left: 112, color: '#788c5d', opacity: 0.85, delay: 0 });
+    items.push({ left: 120, color: '#788c5d', opacity: 0.85, delay: 0 });
+    return items;
+  }
+
+  advanceScene2 = () => {
+    this.setState(s => ({ scene2: (s.scene2 + 1) % 3 }));
+  };
+
+  toggleLandscape = () => {
+    this.setState(s => ({ landscapeRevealed: !s.landscapeRevealed }));
+  };
+
+  renderVals() {
+    const scene2 = this.state.scene2;
+    const captions2 = [
+      'Three intersections along an arterial.',
+      'Green wave: consistent timing keeps flow continuous through all three.',
+      'One badly-timed signal creates a queue that spills back \u2014 blocking the intersection upstream.'
+    ];
+    const labels2 = ['\u2192', '\u2192', '\u21bb'];
+    const node0Color = scene2 === 2 ? '#b0aea5' : scene2 === 1 ? '#788c5d' : '#b0aea5';
+    const node1Color = scene2 === 2 ? '#b15a3c' : scene2 === 1 ? '#788c5d' : '#b0aea5';
+    const node2Color = scene2 === 1 ? '#788c5d' : '#b0aea5';
+    const node0Ring = scene2 === 2 ? 'box-shadow:0 0 0 6px rgba(177,90,60,0.28);' : '';
+    const captionsWithSeverity = captions2;
+    const landscapeRevealed = this.state.landscapeRevealed;
+
+    return {
+      cars2: this.carsForScene(scene2),
+      caption2: captionsWithSeverity[scene2],
+      sceneButtonLabel2: labels2[scene2],
+      node0Color, node1Color, node2Color, node0Ring,
+      advanceScene2: this.advanceScene2,
+      toggleLandscape: this.toggleLandscape,
+      fgsRowBg: landscapeRevealed ? 'linear-gradient(90deg, var(--accent-dark), var(--accent))' : 'var(--bg-card)',
+      fgsRowOpacity: landscapeRevealed ? 1 : 0.35,
+      fgsRowTransform: landscapeRevealed ? 'translateY(0)' : 'translateY(6px)',
+      landscapeHint: landscapeRevealed ? 'Every marked cell above is unfilled elsewhere \u2014 this thesis fills them.' : 'Click the last row to reveal FGS'
+    };
+  }
+}
+</script>
+<script>
+(async () => {
+  if (!document.title || !document.title.trim()) document.title = "FGS Thesis Defense";
+  // Prepend so page-supplied @page / break rules (deck-stage's margin:0,
+  // author CSS) keep source-order precedence over the baseline.
+  const baseCss = document.createElement('style');
+  baseCss.textContent = "@media print {\n  figure, table { break-inside: avoid; }\n  *, *::before, *::after {\n    print-color-adjust: exact; -webkit-print-color-adjust: exact;\n    backdrop-filter: none !important; -webkit-backdrop-filter: none !important;\n    animation-delay: -99s !important; animation-duration: .001s !important;\n    animation-iteration-count: 1 !important; animation-fill-mode: both !important;\n    animation-play-state: running !important; transition-duration: 0s !important;\n  }\n}";
+  document.head.prepend(baseCss);
+  if (document.readyState === 'loading') {
+    await new Promise((r) => document.addEventListener('DOMContentLoaded', r, { once: true }));
+  }
+  let ds = document.querySelector('deck-stage');
+  // whenDefined never resolves when nothing registers the element, so only
+  // await it when a <deck-stage> tag exists (and race a timeout regardless).
+  if (ds && !customElements.get('deck-stage')) {
+    try {
+      await Promise.race([
+        customElements.whenDefined('deck-stage'),
+        new Promise((r) => setTimeout(r, 3000)),
+      ]);
+    } catch (e) {}
+    ds = document.querySelector('deck-stage');
+  }
+  // dc-runtime assigns window.DCLogic at init and mounts into #dc-root on
+  // DOMContentLoaded; settle on that subtree so React has rendered before
+  // print(). Non-DC pages fall through to weighing body.
+  const isDc = !ds && 'DCLogic' in window;
+  const settleRoot = ds || (isDc ? document.getElementById('dc-root') : null) || document.body;
+  if (settleRoot) {
+    // Weigh only content children — skip script/style/template so inline
+    // Babel/CSS doesn't register as stable "content" before the framework
+    // has mounted anything.
+    const MEDIA = 'img,svg,canvas,video,picture,iframe,embed,object';
+    const weigh = () => {
+      let text = 0, media = 0;
+      for (const c of settleRoot.children) {
+        const t = c.tagName;
+        if (t === 'SCRIPT' || t === 'STYLE' || t === 'TEMPLATE') continue;
+        text += (c.textContent || '').trim().length;
+        media += c.querySelectorAll(MEDIA).length + (c.matches(MEDIA) ? 1 : 0);
+      }
+      return text + media * 100;
+    };
+    // "Non-zero and stable" alone is not sufficient to mean rendered: generic
+    // body can carry a static shell while async main content is pending, and
+    // #dc-root can carry the root DC's static text while child refs are still
+    // .sc-placeholder boxes. Gate generic on readyState 'complete', and never
+    // accept stability while a dc-runtime placeholder is present.
+    const isGeneric = settleRoot === document.body;
+    const deadline = Date.now() + 15000;
+    let last = -1, stable = 0;
+    while (Date.now() < deadline) {
+      const n = weigh();
+      const ready =
+        (!isGeneric || document.readyState === 'complete') &&
+        !settleRoot.querySelector('.sc-placeholder');
+      if (n > 0 && n === last && ready) { if (++stable >= 2) break; } else { stable = 0; }
+      last = n;
+      await new Promise((r) => setTimeout(r, 250));
+    }
+  }
+  // Project support.js may predate runtime default-seeding; push via bridge.
+  if (isDc && window.__dcSetProps && window.__dcRootName) {
+    try {
+      const dpEl = document.querySelector('script[data-dc-script]');
+      const meta = JSON.parse((dpEl && dpEl.getAttribute('data-props')) || '{}');
+      const bag = {};
+      for (const k in meta)
+        if (k[0] !== '$' && meta[k] && meta[k].default !== undefined)
+          bag[k] = meta[k].default;
+      if (Object.keys(bag).length) {
+        window.__dcSetProps(window.__dcRootName(), bag);
+        await new Promise((r) => setTimeout(r, 50));
+      }
+    } catch (e) {}
+  }
+  // Reveal content gated on scroll or visibility before printing. Lazy <img>,
+  // IntersectionObserver fade-ins, and collapsed <details> don't render while
+  // off-screen, so a long page would print with them blank or closed. Open
+  // every <details>, force native-lazy images eager, and scroll the document
+  // through its full height to trip lazy-load + IO; then wait (bounded) for the
+  // newly-triggered images. Inert for deck-stage (slides aren't scroll-gated).
+  try {
+    for (const d of document.querySelectorAll('details')) d.open = true;
+    for (const img of document.querySelectorAll('img[loading="lazy"]'))
+      img.loading = 'eager';
+    const scroller = document.scrollingElement || document.documentElement;
+    const full = Math.max(scroller.scrollHeight, document.body.scrollHeight);
+    const step = window.innerHeight || 800;
+    for (let y = 0; y <= full; y += step) {
+      window.scrollTo(0, y);
+      await new Promise((r) => requestAnimationFrame(r));
+    }
+    window.scrollTo(0, 0);
+    await Promise.race([
+      Promise.all(
+        [...document.images].map((img) =>
+          img.complete
+            ? null
+            : new Promise((res) => {
+                img.addEventListener('load', res, { once: true });
+                img.addEventListener('error', res, { once: true });
+              })
+        )
+      ),
+      new Promise((r) => setTimeout(r, 4000)),
+    ]);
+  } catch (e) {}
+  try { await document.fonts.ready; } catch (e) {}
+  // Jump every animation to its end state so print() never captures a slide
+  // mid-entrance. Ordering matters: the 0s-transition style must be live
+  // BEFORE data-deck-active is set so attribute-keyed transitions don't
+  // start a (now-0s) run from the pre-active base.
+  const st = document.createElement('style');
+  st.textContent = '*,*::before,*::after{animation-delay:-99s !important;animation-duration:.001s !important;animation-iteration-count:1 !important;animation-fill-mode:both !important;animation-play-state:running !important;transition-duration:0s !important}';
+  document.head.appendChild(st);
+  for (const d of document.querySelectorAll('deck-stage')) {
+    for (const c of d.children) {
+      const t = c.tagName;
+      if (t === 'SCRIPT' || t === 'STYLE' || t === 'TEMPLATE') continue;
+      c.setAttribute('data-deck-active', '');
+    }
+  }
+  // Re-append deck-stage's @page last so no author @page can add a margin and
+  // spill each full-bleed slide onto two sheets. Backstop for old copies.
+  if (ds) {
+    let pg = document.getElementById('deck-stage-print-page');
+    if (!pg) {
+      pg = document.createElement('style');
+      pg.textContent = '@page{size:' + (+ds.getAttribute('width') || 1920) +
+        'px ' + (+ds.getAttribute('height') || 1080) + 'px;margin:0}';
+    }
+    document.body.appendChild(pg);
+  }
+  try {
+    const sweep = () => {
+      for (const a of document.getAnimations()) {
+        try { a.finish(); } catch (e) {
+          try { a.currentTime = (a.effect && a.effect.getComputedTiming().duration) || 0; a.pause(); } catch (e2) {}
+        }
+      }
+    };
+    sweep();
+    await new Promise((r) => requestAnimationFrame(r));
+    sweep();
+    await new Promise((r) => requestAnimationFrame(r));
+  } catch (e) {}
+  // Size the PDF page to the rendered design unless the file opted into
+  // standard paper via @page{size:letter|A4|…}. Decks own their own @page.
+  // Wrappers (body, …) lose padding+margin so the frame sits at (0,0); the
+  // frame itself loses only margin — its padding is INSIDE the measured
+  // rect and must stay, or content shifts and leaves a gap at bottom/right.
+  var __m = null;
+  try { __m = (() => {
+  var STAMP = true;
+  var docEl = document.documentElement;
+  var doc = { width: docEl.scrollWidth, height: docEl.scrollHeight };
+
+  var ds = document.querySelector('deck-stage');
+  if (ds) {
+    var dw = Number(ds.getAttribute('width')) || 1920;
+    var dh = Number(ds.getAttribute('height')) || 1080;
+    var n = typeof ds.length === 'number' ? ds.length : ds.children.length;
+    var idx = typeof ds.index === 'number' ? ds.index : 0;
+    var frames = [];
+    for (var i = 0; i < n; i++) frames.push({ left: 0, top: 0, width: dw, height: dh });
+    return { kind: 'deck', source: 'declared', doc: doc, frames: frames,
+      authored: frames.map(function(){return{width:true,height:true}}),
+      deck: { width: dw, height: dh, slideCount: n, index: idx },
+      signals: { paperPage: false, pxPage: false } };
+  }
+
+  // Declared kind: a doc-page tag names the kind outright, so no signal
+  // heuristics run (like the deck branch above, signals report false —
+  // they describe inferred classifications only). The tag alone is not
+  // trusted: the element must have upgraded (shadowRoot present), so a
+  // leftover tag whose script was deleted falls through to the heuristics
+  // that handle plain markup.
+  var stageSx = window.scrollX || 0, stageSy = window.scrollY || 0;
+  var dp = document.querySelector('doc-page');
+  if (dp && dp.shadowRoot) {
+    // Crop to the sheet, not the host — the desk around it is screen-only
+    // chrome that must not land in PNG exports.
+    var sheet = dp.shadowRoot.querySelector('.sheet');
+    var sr = (sheet || dp).getBoundingClientRect();
+    return { kind: 'paper-doc', source: 'declared', doc: doc,
+      frames: [{ left: sr.left + stageSx, top: sr.top + stageSy,
+        width: sr.width, height: sr.height }],
+      authored: [{ width: false, height: false }],
+      signals: { paperPage: false, pxPage: false } };
+  }
+  var paperPage = false, pxPage = false;
+  var eachRule = function (fn) {
+    for (var s = 0; s < document.styleSheets.length; s++) {
+      var rs; try { rs = document.styleSheets[s].cssRules; } catch (e) { continue; }
+      for (var r = 0; r < rs.length; r++) {
+        fn(rs[r]);
+        if (rs[r].cssRules) for (var n = 0; n < rs[r].cssRules.length; n++) fn(rs[r].cssRules[n]);
+      }
+    }
+  };
+  eachRule(function (r) {
+    if (r.type !== 6) return;
+    var m = /\bsize\s*:\s*([^;}]+)/i.exec(r.cssText || '');
+    if (!m) return;
+    if (/\b(letter|a[3-5]|legal|ledger)\b/i.test(m[1])) paperPage = true;
+    if (/\d+(?:\.\d+)?px\b/i.test(m[1])) pxPage = true;
+  });
+  var signals = { paperPage: paperPage, pxPage: pxPage };
+
+  var pxVal = function (v) {
+    var m = /^(\d+(?:\.\d+)?)px$/.exec(v || ''); return m ? +m[1] : 0;
+  };
+  var authoredPx = function (el, prop) {
+    if (pxVal(el.style[prop])) return true;
+    var attr = el.getAttribute(prop);
+    if (attr && /^\d+$/.test(attr)) return true;
+    var hit = false;
+    eachRule(function (r) {
+      if (hit || r.type !== 1 || !r.style) return;
+      try { if (el.matches(r.selectorText) && pxVal(r.style[prop])) hit = true; } catch (e) {}
+    });
+    return hit;
+  };
+
+  var el = document.body, rootPxW = false;
+  for (;;) {
+    var kids = [];
+    for (var c = 0; c < el.children.length; c++) {
+      var t = el.children[c].tagName;
+      if (t !== 'SCRIPT' && t !== 'STYLE' && t !== 'TEMPLATE') kids.push(el.children[c]);
+    }
+    if (kids.length !== 1 || !(kids[0] instanceof HTMLElement)) break;
+    if (STAMP) el.setAttribute('data-om-frame-wrap', '');
+    el = kids[0];
+    rootPxW = authoredPx(el, 'width');
+    if (rootPxW) break;
+  }
+  if (!rootPxW) rootPxW = authoredPx(el, 'width');
+
+  // @page{size:letter} alone is a flowing doc; with a px-width root it's a
+  // fixed sheet pretending to be paper — fall through and size to render.
+  if (paperPage && !rootPxW) {
+    return { kind: 'paper-doc', source: 'inferred', doc: doc, signals: signals,
+      frames: [{ left: 0, top: 0, width: doc.width, height: doc.height }],
+      authored: [{ width: false, height: false }] };
+  }
+
+  var sx = window.scrollX || 0, sy = window.scrollY || 0;
+  var rectOf = function (e) {
+    var r = e.getBoundingClientRect();
+    var oy; try { oy = getComputedStyle(e).overflowY; } catch (err) {}
+    var h = oy === 'visible' ? Math.max(r.height, e.scrollHeight || 0) : r.height;
+    return { left: r.left + sx, top: r.top + sy, width: r.width, height: h };
+  };
+
+  // Multi-frame: ≥2 visible non-fixed children, each with authored px width
+  // AND height, all within ±2px of each other. Off unless the page opts in
+  // via data-om-multi-frame on the stop element — guards against card grids
+  // and pricing tables that match the geometry but aren't separate canvases.
+  if (el.hasAttribute('data-om-multi-frame')) {
+    var cands = [];
+    for (var k = 0; k < el.children.length; k++) {
+      var ch = el.children[k];
+      var cs; try { cs = getComputedStyle(ch); } catch (e) { continue; }
+      if (cs.display === 'none' || cs.visibility === 'hidden' || cs.position === 'fixed') continue;
+      var rc = rectOf(ch);
+      if (rc.width < 2 || rc.height < 2) continue;
+      if (!authoredPx(ch, 'width') || !authoredPx(ch, 'height')) continue;
+      cands.push(rc);
+    }
+    if (cands.length >= 2) {
+      var w0 = cands[0].width, h0 = cands[0].height, ok = true;
+      for (var q = 1; q < cands.length; q++)
+        if (Math.abs(cands[q].width - w0) > 2 || Math.abs(cands[q].height - h0) > 2) ok = false;
+      if (ok) return { kind: 'multi-frame', source: 'inferred', doc: doc, signals: signals,
+        frames: cands, authored: cands.map(function(){return{width:true,height:true}}) };
+    }
+  }
+
+  if (STAMP) el.setAttribute('data-om-frame', '');
+  return { kind: 'single-canvas', source: 'inferred', doc: doc, signals: signals,
+    frames: [rectOf(el)],
+    authored: [{ width: rootPxW, height: authoredPx(el, 'height') }] };
+})(); } catch (e) {}
+  var frame = null;
+  if (__m && __m.kind === 'single-canvas') {
+    var f = __m.frames && __m.frames[0];
+    if (f && f.width >= 200 && f.height >= 200) {
+      frame = f;
+      var fst = document.createElement('style');
+      fst.textContent = '@media print{@page{size:' + Math.ceil(f.width) + 'px ' +
+        Math.ceil(f.height) + 'px;margin:0}' +
+        'html,body,[data-om-frame-wrap]{padding:0!important;margin:0!important;background:none!important}' +
+        '[data-om-frame]{margin:0!important}}';
+      document.body.appendChild(fst);
+    }
+  }
+  // Relax break-inside on oversized elements. An element taller than a
+  // printable page can't honor break-inside: avoid — browsers either overflow
+  // it or push it whole to the next page, leaving a blank gap, then break it
+  // anyway at an arbitrary point. After the final layout (content revealed,
+  // animations jumped), find elements taller than a page that still compute
+  // break-inside: avoid and reset them to auto, so the browser breaks them at
+  // their children's boundaries instead (children keep their own avoid). PAGE_PX
+  // is a conservative portrait estimate at 96 CSS px/in — Letter/A4 usable
+  // height minus our 0.5in margins — so only clearly-oversized elements are
+  // touched and under-page elements still stay whole. Skipped for decks (slides
+  // are sized to the page) and for fixed-size canvases (frame set, or an author
+  // px-based @page) — runs as before for flowing docs on letter/A4.
+  try {
+    if (!ds && !frame && !(__m && __m.signals && __m.signals.pxPage)) {
+      const PAGE_PX = 1024;
+      // Our print defaults add a real @page margin only when the source has
+      // no @page of its own; computed style can't tell us (it reports screen
+      // media), so read the injected rule directly.
+      const defaults = document.querySelector('style[data-omelette-print-defaults]');
+      const pageInset = /@page\s*\{[^}]*margin/.test(defaults ? defaults.textContent || '' : '');
+      const SEL = 'section,article,figure,table,pre,blockquote,[class~="card" i],[class~="page" i],[class~="sheet" i]';
+      for (const el of document.body.querySelectorAll(SEL)) {
+        if (el instanceof HTMLElement && el.offsetHeight > PAGE_PX) {
+          el.setAttribute('data-om-oversized', '');
+          // Fake-paged docs simulate sheets with over-tall break-after:page
+          // boxes; honoring the break spills half-blank pages and ends a
+          // colored box mid-sheet. Flow them, and (only when we own the page
+          // inset) drop the redundant padding/background via the rule below.
+          const cs = getComputedStyle(el);
+          if (cs.breakAfter === 'page' || cs.pageBreakAfter === 'always') {
+            el.setAttribute('data-om-fakepage', '');
+          }
+        }
+      }
+      const ost = document.createElement('style');
+      ost.textContent = '@media print{' +
+        '[data-om-oversized]{break-inside:auto !important;page-break-inside:auto !important}' +
+        '[data-om-fakepage]{break-after:auto !important;page-break-after:auto !important}' +
+        (pageInset ? '[data-om-fakepage]{padding:0 !important;background:none !important}' : '') +
+        '}';
+      document.head.appendChild(ost);
+    }
+  } catch (e) {}
+  // macOS Preview renders Skia-PDF Luminosity soft-masks as opaque grey boxes;
+  // swap the CSS that triggers them for Preview-safe forms.
+  try {
+    for (const el of document.body.querySelectorAll('*')) {
+      const cs = getComputedStyle(el);
+
+      if (cs.boxShadow !== 'none' && cs.filter === 'none') {
+        const outs = [], kept = [];
+        for (const s of cs.boxShadow.split(/,(?![^(]*[)])/)) {
+          const t = s.trim();
+          const m = t.match(/^(rgba?[(][^)]+[)]) (-?[0-9.]+px) (-?[0-9.]+px) ([0-9.]+px) -?[0-9.]+px$/);
+          if (m && parseFloat(m[4]) > 0) outs.push('drop-shadow(' + m[2] + ' ' + m[3] + ' ' + m[4] + ' ' + m[1] + ')');
+          else kept.push(t);
+        }
+        if (outs.length) {
+          el.style.setProperty('filter', outs.join(' '), 'important');
+          el.style.setProperty('box-shadow', kept.join(', ') || 'none', 'important');
+        }
+      }
+
+      const mask = cs.maskImage && cs.maskImage !== 'none' ? cs.maskImage : cs.webkitMaskImage;
+      if (mask && mask !== 'none' && cs.filter === 'none') el.style.setProperty('filter', 'opacity(1)', 'important');
+    }
+  } catch (e) {}
+  setTimeout(() => { try { window.print(); } catch (e) {} }, 200);
+})();
+</script>
+</body>
+</html>
