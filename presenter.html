@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Presenter Console — FGS Thesis Defense</title>
+<style>
+  :root{
+    --bg:#141413; --panel:#1e1e1c; --panel-2:#26251f; --line:#39372f;
+    --ink:#faf9f5; --muted:#b0aea5; --accent:#d97757; --accent-dark:#b15a3c;
+    --good:#788c5d;
+    --head:'Poppins',Helvetica,Arial,sans-serif;
+    --body:'Lora',Georgia,serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
+    font-family:var(--head);overflow:hidden;}
+  a{color:var(--accent);}
+
+  /* ── Setup card (shown until the audience window is opened) ───────── */
+  #setup{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+    background:var(--bg);z-index:50;padding:40px;}
+  #setup .card{max-width:560px;background:var(--panel);border:1px solid var(--line);
+    border-radius:18px;padding:44px 46px;}
+  #setup h1{font-size:26px;font-weight:600;margin:0 0 6px;}
+  #setup .accent{color:var(--accent);}
+  #setup p{font-family:var(--body);color:var(--muted);font-size:16px;line-height:1.6;margin:14px 0;}
+  #setup ol{font-family:var(--body);color:var(--muted);font-size:15px;line-height:1.65;padding-left:20px;}
+  .btn{font-family:var(--head);font-weight:600;font-size:15px;cursor:pointer;
+    border:1px solid var(--line);background:var(--panel-2);color:var(--ink);
+    padding:11px 18px;border-radius:10px;letter-spacing:.02em;transition:.15s;}
+  .btn:hover{border-color:var(--accent);color:var(--accent);}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#1b1b19;}
+  .btn.primary:hover{background:var(--accent-dark);border-color:var(--accent-dark);color:#fff;}
+  #openBtn{margin-top:22px;font-size:16px;padding:14px 24px;}
+
+  /* ── Console layout ──────────────────────────────────────────────── */
+  #console{position:fixed;inset:0;display:grid;
+    grid-template-columns:1fr 400px;grid-template-rows:1fr 84px;
+    grid-template-areas:"current side" "controls controls";
+    gap:14px;padding:14px;visibility:hidden;}
+  .label{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+    font-weight:600;margin-bottom:8px;display:flex;justify-content:space-between;align-items:baseline;}
+  .label .count{color:var(--accent);font-size:13px;letter-spacing:.06em;}
+
+  #current{grid-area:current;display:flex;flex-direction:column;min-width:0;min-height:0;}
+  .stage{position:relative;flex:1;background:#000;border:1px solid var(--line);
+    border-radius:14px;overflow:hidden;min-height:0;}
+  .stage iframe{position:absolute;inset:0;width:100%;height:100%;border:0;}
+  /* transparent hit layer: left half = prev, right half = next; keeps
+     keyboard focus on the console, never inside the deck iframe. */
+  .hit{position:absolute;inset:0;display:flex;z-index:2;}
+  .hit>div{flex:1;cursor:pointer;}
+  .hit .l:hover{box-shadow:inset 40px 0 40px -40px var(--accent);}
+  .hit .r:hover{box-shadow:inset -40px 0 40px -40px var(--accent);}
+
+  #side{grid-area:side;display:flex;flex-direction:column;gap:14px;min-height:0;}
+  .meters{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .meter{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;}
+  .meter .k{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);}
+  .meter .v{font-size:30px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.1;margin-top:4px;}
+  .meter .v.sm{font-size:22px;}
+  #next{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;}
+  #nextStage{position:relative;width:100%;aspect-ratio:16/9;background:#000;
+    border-radius:8px;overflow:hidden;margin-top:2px;}
+  #nextStage iframe{position:absolute;inset:0;width:100%;height:100%;border:0;}
+  #nextEnd{position:absolute;inset:0;display:none;align-items:center;justify-content:center;
+    color:var(--muted);font-size:14px;letter-spacing:.1em;text-transform:uppercase;}
+  #notesWrap{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    padding:14px 16px;flex:1;min-height:0;display:flex;flex-direction:column;}
+  #notes{font-family:var(--body);font-size:19px;line-height:1.6;color:#e9e7df;
+    overflow-y:auto;margin-top:6px;white-space:pre-wrap;}
+  #notes.empty{color:var(--muted);font-style:italic;}
+
+  #controls{grid-area:controls;display:flex;align-items:center;gap:10px;
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:0 16px;}
+  #controls .spacer{flex:1;}
+  #controls .hint{font-family:var(--body);font-size:13px;color:var(--muted);}
+  #controls .hint kbd{font-family:var(--head);background:var(--panel-2);border:1px solid var(--line);
+    border-radius:5px;padding:1px 7px;font-size:12px;margin:0 1px;}
+  #audWarn{color:var(--accent);font-size:13px;font-weight:600;display:none;}
+</style>
+</head>
+<body>
+
+<!-- ─── Setup ─────────────────────────────────────────────────────────── -->
+<div id="setup">
+  <div class="card">
+    <h1><span class="accent">▶</span> Presenter Console</h1>
+    <p><strong>FGS — Thesis Defense.</strong> This console shows your current slide,
+    the next slide, your speaker notes, and a timer. Opening the audience window
+    pops out a clean full-screen deck that stays in sync as you navigate.</p>
+    <ol>
+      <li>Extend your display (projector as a <em>second screen</em>, not mirrored).</li>
+      <li>Click below — a new window opens. Drag it to the projector.</li>
+      <li>Make that window full-screen (<kbd>F11</kbd>, or <kbd>⌃⌘F</kbd> on macOS).</li>
+      <li>Come back here and drive with <kbd>→</kbd> / <kbd>←</kbd> or the on-screen buttons.</li>
+    </ol>
+    <button id="openBtn" class="btn primary">Open audience window ⧉</button>
+  </div>
+</div>
+
+<!-- ─── Console ───────────────────────────────────────────────────────── -->
+<div id="console">
+  <section id="current">
+    <div class="label"><span>Current slide</span><span class="count" id="cnt">—</span></div>
+    <div class="stage">
+      <iframe id="curFrame" src="index.html#1" title="Current slide"></iframe>
+      <div class="hit"><div class="l" data-nav="prev"></div><div class="r" data-nav="next"></div></div>
+    </div>
+  </section>
+
+  <aside id="side">
+    <div class="meters">
+      <div class="meter"><div class="k">Elapsed</div><div class="v" id="timer">00:00</div></div>
+      <div class="meter"><div class="k">Time</div><div class="v sm" id="clock">--:--</div></div>
+    </div>
+    <div id="next">
+      <div class="label"><span>Next slide</span></div>
+      <div id="nextStage">
+        <iframe id="nextFrame" title="Next slide" tabindex="-1"></iframe>
+        <div id="nextEnd">End of deck</div>
+      </div>
+    </div>
+    <div id="notesWrap">
+      <div class="label"><span>Speaker notes</span></div>
+      <div id="notes" class="empty">—</div>
+    </div>
+  </aside>
+
+  <footer id="controls">
+    <button class="btn" data-nav="prev">◀ Prev</button>
+    <button class="btn" data-nav="next">Next ▶</button>
+    <button class="btn" id="resetTimer">⟲ Timer</button>
+    <button class="btn" id="reopen">⧉ Audience</button>
+    <span id="audWarn">⚠ Audience window closed — click ⧉ Audience</span>
+    <span class="spacer"></span>
+    <span class="hint"><kbd>←</kbd><kbd>→</kbd> / <kbd>Space</kbd> navigate ·
+      <kbd>1</kbd>–<kbd>9</kbd> jump · <kbd>R</kbd> restart · <kbd>F</kbd> focus audience</span>
+  </footer>
+</div>
+
+<script>
+(() => {
+  const DECK = 'index.html';
+  const curFrame  = document.getElementById('curFrame');
+  const nextFrame = document.getElementById('nextFrame');
+  const nextEnd   = document.getElementById('nextEnd');
+  const notesEl   = document.getElementById('notes');
+  const cntEl     = document.getElementById('cnt');
+  const timerEl   = document.getElementById('timer');
+  const clockEl   = document.getElementById('clock');
+  const audWarn   = document.getElementById('audWarn');
+
+  let index = 0;         // 0-based current slide (source of truth = deck reports)
+  let total = 0;
+  let aud = null;        // audience window handle
+
+  // ── Drive a deck window by synthesising the keydown its handler listens
+  //    for. Works same-origin across the iframe and the popup. We build the
+  //    event with the *target realm's* constructor so it's a genuine event
+  //    there. ────────────────────────────────────────────────────────────
+  function key(win, k){
+    if (!win) return;
+    try {
+      const K = win.KeyboardEvent || KeyboardEvent;
+      win.dispatchEvent(new K('keydown', { key:k, bubbles:true, cancelable:true }));
+    } catch (e) { /* window gone / cross-origin — ignore */ }
+  }
+  function nav(k){
+    key(curFrame.contentWindow, k);            // the console's own preview
+    if (aud && !aud.closed) key(aud, k);       // the projector
+  }
+  const ACTIONS = { prev:'ArrowLeft', next:'ArrowRight' };
+
+  // ── Audience window ──────────────────────────────────────────────────
+  function openAudience(){
+    // Load it at the current slide via the hash the deck reads on load, so
+    // (re)opening mid-talk lands in sync.
+    const url = DECK + '#' + (index + 1);
+    aud = window.open(url, 'fgs-audience', 'width=1280,height=720');
+    if (!aud) { alert('Pop-up blocked — allow pop-ups for this site, then click ⧉ Audience.'); return; }
+    document.getElementById('setup').style.display = 'none';
+    document.getElementById('console').style.visibility = 'visible';
+    // Hide the deck's rail + idle overlay on the projector once it has loaded.
+    const present = () => { try { aud.postMessage({ __omelette_presenting:true }, location.origin); } catch(e){} };
+    setTimeout(present, 600); setTimeout(present, 1600);
+    aud.focus();
+  }
+  document.getElementById('openBtn').addEventListener('click', openAudience);
+  document.getElementById('reopen').addEventListener('click', () => {
+    if (aud && !aud.closed) { aud.focus(); } else { openAudience(); }
+  });
+  // Poll for a closed projector window so we can warn the presenter.
+  setInterval(() => { audWarn.style.display = (aud && aud.closed) ? 'inline' : 'none'; }, 800);
+
+  // ── Read the current slide's speaker note straight from the deck DOM ──
+  function slides(){
+    try { return curFrame.contentDocument.querySelectorAll('section[data-label]'); }
+    catch(e){ return []; }
+  }
+  function refresh(){
+    cntEl.textContent = total ? (index + 1) + ' / ' + total : (index + 1);
+    // Notes
+    const secs = slides();
+    let note = '';
+    if (secs[index]) note = secs[index].getAttribute('data-speaker-notes') || '';
+    notesEl.textContent = note.trim() || 'No notes for this slide.';
+    notesEl.classList.toggle('empty', !note.trim());
+    // Next-slide preview (fresh load at the following slide; ?_snthumb hides chrome)
+    if (total && index + 1 < total) {
+      nextEnd.style.display = 'none';
+      nextFrame.style.display = 'block';
+      nextFrame.src = DECK + '?_snthumb=1#' + (index + 2);
+    } else {
+      nextFrame.removeAttribute('src');
+      nextFrame.style.display = 'none';
+      nextEnd.style.display = 'flex';
+    }
+  }
+
+  // ── Learn the authoritative index/total from the deck's own broadcast.
+  //    The deck posts to *its own* window; same-origin lets us listen on it.
+  function attachDeckListener(){
+    try {
+      curFrame.contentWindow.addEventListener('message', (e) => {
+        const d = e.data;
+        if (!d || !('slideIndexChanged' in d)) return;
+        index = d.slideIndexChanged | 0;
+        if (typeof d.deckTotal === 'number') total = d.deckTotal;
+        refresh();
+      });
+    } catch(e){}
+  }
+  curFrame.addEventListener('load', () => {
+    attachDeckListener();
+    try { curFrame.contentWindow.postMessage({ __omelette_presenting:true }, location.origin); } catch(e){}
+    // The deck broadcasts on init, but read once now in case we missed it.
+    setTimeout(refresh, 300);
+  });
+
+  // ── Click zones + buttons ────────────────────────────────────────────
+  document.querySelectorAll('[data-nav]').forEach(el => {
+    el.addEventListener('click', () => nav(ACTIONS[el.getAttribute('data-nav')]));
+  });
+
+  // ── Keyboard: forward navigation keys to both decks ──────────────────
+  const FORWARD = new Set(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown',
+    'PageUp','PageDown',' ','Home','End','r','R','0','1','2','3','4','5','6','7','8','9']);
+  window.addEventListener('keydown', (e) => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key === 'f' || e.key === 'F') { if (aud && !aud.closed) aud.focus(); e.preventDefault(); return; }
+    if (FORWARD.has(e.key)) { nav(e.key); e.preventDefault(); }
+  });
+
+  // ── Timer + clock ────────────────────────────────────────────────────
+  let start = Date.now();
+  const two = n => String(n).padStart(2,'0');
+  document.getElementById('resetTimer').addEventListener('click', () => { start = Date.now(); });
+  setInterval(() => {
+    const s = Math.floor((Date.now() - start) / 1000);
+    const h = Math.floor(s/3600);
+    timerEl.textContent = (h ? two(h)+':' : '') + two(Math.floor(s/60)%60) + ':' + two(s%60);
+    const now = new Date();
+    clockEl.textContent = two(now.getHours()) + ':' + two(now.getMinutes());
+  }, 1000);
+})();
+</script>
+</body>
+</html>
