@@ -240,65 +240,17 @@
     </div>
   </section>
 
-  <section data-label="FGS Pipeline" data-screen-label="09 Pipeline" data-speaker-notes="FGS equals Framework for Graph-aware Signal control. Each intersection is an agent. The key idea is decoupling: encoder, communication, and RL algorithm are independently pluggable, trained centrally and executed decentrally. The FRAP encoder is tapped at two internal points -- once for the action tokens Module III consumes, once for the raw demand signal Module II shares." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+  <section data-label="FGS Full Pipeline" data-screen-label="09 Full Pipeline" data-speaker-notes="This is the whole architecture end to end: Module I encodes local demand into per-phase tokens, Module II pools and shares that with GATv2 attention across neighbors, Module III fuses both into the actor and factored critic. Nothing here is new versus the last three slides -- this is just the single-picture summary before we move to experiments." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
     <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">09 — The FGS Pipeline</div>
     <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">FGS in one picture</h2>
 
-    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:36px;">
-      <div style="display:flex;align-items:stretch;gap:20px;">
-        <div style="flex:1;background:var(--bg-card);border-radius:4px;padding:32px;text-align:center;">
-          <div style="font-family:var(--head);font-size:17px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">Module I</div>
-          <div style="font-family:var(--head);font-weight:500;font-size:28px;margin-bottom:16px;">Encoder</div>
-          <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-            <div style="background:var(--tile-paper);border-radius:20px;padding:8px 18px;font-family:var(--head);font-size:17px;">MLP</div>
-            <div style="background:var(--tile-paper);border-radius:20px;padding:8px 18px;font-family:var(--head);font-size:17px;">FRAP</div>
-          </div>
-        </div>
-        <div style="display:flex;align-items:center;font-size:36px;color:var(--muted);">→</div>
-        <div style="flex:1;background:var(--bg-card);border-radius:4px;padding:32px;text-align:center;">
-          <div style="font-family:var(--head);font-size:17px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">Module II</div>
-          <div style="font-family:var(--head);font-weight:500;font-size:28px;margin-bottom:16px;">Graph Communication</div>
-          <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-            <div style="background:var(--tile-paper);border-radius:20px;padding:8px 18px;font-family:var(--head);font-size:17px;">none</div>
-            <div style="background:var(--tile-paper);border-radius:20px;padding:8px 18px;font-family:var(--head);font-size:17px;">GAT</div>
-            <div style="background:var(--tile-paper);border-radius:20px;padding:8px 18px;font-family:var(--head);font-size:17px;">GATv2 (gated)</div>
-          </div>
-        </div>
-        <div style="display:flex;align-items:center;font-size:36px;color:var(--muted);">→</div>
-        <div style="flex:1;background:var(--bg-card);border-radius:4px;padding:32px;text-align:center;">
-          <div style="font-family:var(--head);font-size:17px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">Module III</div>
-          <div style="font-family:var(--head);font-weight:500;font-size:28px;margin-bottom:16px;">RL Optimizer</div>
-          <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-            <div style="background:var(--tile-paper);border-radius:20px;padding:8px 18px;font-family:var(--head);font-size:17px;">DQN</div>
-            <div style="background:var(--tile-paper);border-radius:20px;padding:8px 18px;font-family:var(--head);font-size:17px;">PPO</div>
-            <div style="background:var(--tile-paper);border-radius:20px;padding:8px 18px;font-family:var(--head);font-size:17px;">SAC</div>
-          </div>
-        </div>
-      </div>
-      <div style="font-size:var(--type-small);color:var(--ink-soft);max-width:1300px;">SUMO observation x<sub>i</sub> → phase policy π<sub>i</sub>. Encoder, communication, and RL are independently pluggable — trained centrally, executed decentrally (CTDE). The encoder is tapped twice: action tokens skip straight to Module III, a separate demand embedding feeds Module II.</div>
+    <div style="flex:1;min-height:0;background:rgb(202,102,55);border-radius:4px;padding:20px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+      <img src="uploads/fgs_pipeline.png" alt="Full FGS architecture: Module I FRAP encoder, Module II GATv2 communication, Module III actor and factored critic" style="max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;">
     </div>
   </section>
 
-  <section data-label="FRAP Encoder Detail" data-screen-label="10 FRAP Detail" data-speaker-notes="Zooming into Module I's FRAP encoder: four steps turn raw per-movement demand into either a phase score or an action token. Step 1 extracts demand and phase indicator per movement into a movement embedding. Step 2 pools movement embeddings per candidate phase. Step 3 builds a pairwise competition feature between the selected phase and each competitor, combining relative demand and conflict relation. Step 4 outputs either the original FRAP scalar phase score, or -- FGS's deviation -- the full C-dimensional action token z_i,a, keeping everything per-phase instead of collapsing to one number before Module II and III." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+  <section data-label="Module II Communication" data-screen-label="10 Communication" data-speaker-notes="Each agent shares a demand embedding -- not raw features -- built from its mean phase demand plus its last phase. GATv2 aggregates neighbors' demand embeddings; a learnable gate, starting at zero, controls how much of that context the agent actually uses. On irregular German topologies that distinguishability turns out to be decisive." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
     <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">10 — The FGS Pipeline</div>
-    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Inside Module I: the FRAP encoder</h2>
-
-    <div style="flex:1;min-height:0;border-radius:4px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
-      <img src="uploads/frap.png" alt="FRAP encoder: movement embedding, phase embedding, pairwise competition feature, and outputs (original FRAP phase score vs. FGS action token)" style="width:100%;height:auto;max-height:100%;object-fit:contain;">
-    </div>
-  </section>
-
-  <section data-label="GAT Mechanism" data-screen-label="10b GAT Mechanism" data-speaker-notes="How graph attention actually aggregates: node v's neighbors are pooled with learned attention weights into an updated embedding v', letting the model weigh some neighbors more than others rather than averaging blindly." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
-    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">10b — The FGS Pipeline</div>
-    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">The mechanics of graph attention</h2>
-
-    <div style="flex:1;min-height:0;border-radius:4px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
-      <img src="assets/gat_mechanism.png" alt="Graph attention mechanism: node v attends over its neighbors, then attention-weighted aggregation produces the updated node embedding v'" style="width:100%;height:auto;max-height:100%;object-fit:contain;">
-    </div>
-  </section>
-
-  <section data-label="Module II Communication" data-screen-label="11 Communication" data-speaker-notes="Each agent shares a demand embedding -- not raw features -- built from its mean phase demand plus its last phase. GATv2 aggregates neighbors' demand embeddings; a learnable gate, starting at zero, controls how much of that context the agent actually uses. On irregular German topologies that distinguishability turns out to be decisive." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
-    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">11 — The FGS Pipeline</div>
     <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">What agents actually share</h2>
 
     <div style="flex:1;min-height:0;position:relative;border-radius:4px;overflow:hidden;display:flex;align-items:flex-start;justify-content:center;">
@@ -314,43 +266,8 @@
     </div>
   </section>
 
-  <section data-label="FGS Full Pipeline" data-screen-label="12 Full Pipeline" data-speaker-notes="This is the whole architecture end to end: Module I encodes local demand into per-phase tokens, Module II pools and shares that with GATv2 attention across neighbors, Module III fuses both into the actor and factored critic. Nothing here is new versus the last three slides -- this is just the single-picture summary before we move to experiments." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
-    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">12 — The FGS Pipeline</div>
-    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">FGS in one picture</h2>
-
-    <div style="flex:1;min-height:0;background:rgb(202,102,55);border-radius:4px;padding:20px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
-      <img src="uploads/fgs_pipeline.png" alt="Full FGS architecture: Module I FRAP encoder, Module II GATv2 communication, Module III actor and factored critic" style="max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;">
-    </div>
-  </section>
-
-  <section data-label="Three Generations" data-screen-label="13 Generations" data-speaker-notes="The final architecture wasn't designed on a whiteboard. A first-generation ablation tested four encoder-communication combinations and exposed the scalar bottleneck. It was reached through three generations of hypothesis, experiment, diagnosed failure, targeted repair. This trajectory is itself a contribution." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
-    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">13 — The FGS Pipeline</div>
-    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Not designed once — debugged into existence</h2>
-
-    <div style="flex:1;display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;align-items:stretch;">
-      <div style="background:var(--bg-card);border-radius:4px 0 0 4px;padding:36px;display:flex;flex-direction:column;gap:14px;">
-        <div style="font-family:var(--head);font-size:18px;color:var(--muted);text-transform:uppercase;">Gen-1 — 4 variants ablated</div>
-        <div style="font-family:var(--head);font-weight:500;font-size:24px;">FRAP scalar output</div>
-        <div style="font-size:21px;color:var(--ink-soft);line-height:1.5;">1×1 conv collapses each phase's competition features to one scalar before the graph ever sees it.</div>
-        <div style="margin-top:auto;display:flex;align-items:center;gap:10px;color:var(--accent-dark);font-family:var(--head);font-size:18px;">✕ scalar bottleneck</div>
-      </div>
-      <div style="background:var(--bg-card);border-left:2px solid var(--bg);padding:36px;display:flex;flex-direction:column;gap:14px;">
-        <div style="font-family:var(--head);font-size:18px;color:var(--muted);text-transform:uppercase;">FGSv2</div>
-        <div style="font-family:var(--head);font-weight:500;font-size:24px;">Per-phase action tokens</div>
-        <div style="font-size:21px;color:var(--ink-soft);line-height:1.5;">Tokens tapped post-competition — message carries phase rankings, not raw demand. Centralized critic O(N·d) explodes at N=21.</div>
-        <div style="margin-top:auto;display:flex;align-items:center;gap:10px;color:var(--accent-dark);font-family:var(--head);font-size:18px;">✕ wrong message + critic OOM</div>
-      </div>
-      <div style="background:var(--accent);border-radius:0 4px 4px 0;border-left:2px solid var(--bg);padding:36px;display:flex;flex-direction:column;gap:14px;color:#fff;">
-        <div style="font-family:var(--head);font-size:18px;color:#F5E4DA;text-transform:uppercase;">FGS (final)</div>
-        <div style="font-family:var(--head);font-weight:500;font-size:24px;">Demand tapped earlier + gated</div>
-        <div style="font-size:21px;line-height:1.5;">Message now taps pre-competition phase demand; factored neighborhood critic O(d<sub>c</sub>) — independent of N.</div>
-        <div style="margin-top:auto;display:flex;align-items:center;gap:10px;font-family:var(--head);font-size:18px;">✓ resolved</div>
-      </div>
-    </div>
-  </section>
-
-  <section data-label="Factored Critic" data-screen-label="14 Factored Critic" data-speaker-notes="The concrete blocker for SAC at 21 agents: the standard centralized critic scales linearly with agent count and runs out of memory. The factored critic conditions on graph context, action tokens, and pooled neighbor context instead of the raw joint observation -- input dimension fixed at 204 regardless of N." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
-    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">14 — The FGS Pipeline</div>
+  <section data-label="Factored Critic" data-screen-label="11 Factored Critic" data-speaker-notes="The concrete blocker for SAC at 21 agents: the standard centralized critic scales linearly with agent count and runs out of memory. The factored critic conditions on graph context, action tokens, and pooled neighbor context instead of the raw joint observation -- input dimension fixed at 204 regardless of N." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">11 — The FGS Pipeline</div>
     <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">The scalability fix: factored critic</h2>
 
     <div style="flex:1;min-height:0;background:rgb(203,116,83);border-radius:4px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
@@ -359,8 +276,8 @@
     <div style="text-align:center;margin-top:28px;font-family:var(--head);font-weight:500;font-size:30px;color:var(--accent-dark);">15× smaller</div>
   </section>
 
-  <section data-label="Agent Design" data-screen-label="15 Agent Design" data-speaker-notes="For completeness, the MDP interfaces -- dwell only 30 seconds: local partial observation, discrete phase selection with invalid logits masked to negative infinity, dense reward from change in accumulated waiting time. Formally a Dec-POMDP. Remember the reward choice -- it comes back in the discussion." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
-    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">15 — The FGS Pipeline</div>
+  <section data-label="Agent Design" data-screen-label="12 Agent Design" data-speaker-notes="For completeness, the MDP interfaces -- dwell only 30 seconds: local partial observation, discrete phase selection with invalid logits masked to negative infinity, dense reward from change in accumulated waiting time. Formally a Dec-POMDP. Remember the reward choice -- it comes back in the discussion." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">12 — The FGS Pipeline</div>
     <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Agent design in one breath</h2>
 
     <div style="flex:1;min-height:0;border-radius:4px;overflow:hidden;">
@@ -369,8 +286,8 @@
     <div style="text-align:center;margin-top:24px;font-family:var(--head);font-size:18px;color:var(--muted);">Dec-POMDP: ⟨N, S, {O<sub>i</sub>}, {A<sub>i</sub>}, T, {r<sub>i</sub>}, γ⟩ — agents act simultaneously, observe only their own intersection and immediate neighbors.</div>
   </section>
 
-  <section data-label="Six Scenarios" data-screen-label="16 Scenarios" data-speaker-notes="All six German RESCO scenarios: real road geometry, real demand models, unmodified benchmark files. The three-tier structure is the instrument for answering SQ3. Each episode is one hour of simulated traffic in SUMO." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
-    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">16 — Experimental Setup</div>
+  <section data-label="Six Scenarios" data-screen-label="13 Scenarios" data-speaker-notes="All six German RESCO scenarios: real road geometry, real demand models, unmodified benchmark files. The three-tier structure is the instrument for answering SQ3. Each episode is one hour of simulated traffic in SUMO." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">13 — Experimental Setup</div>
     <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 28px 0;">Six real German scenarios, three scale tiers</h2>
 
     <div style="display:grid;grid-template-columns:70px 1fr 1fr 1fr;gap:16px;margin-bottom:14px;">
@@ -392,8 +309,8 @@
     <div style="text-align:center;margin-top:22px;font-family:var(--head);font-size:18px;color:var(--muted);">RESCO benchmark — real demand: TapasCologne (DLR) &amp; InTAS. One episode = one simulated hour in SUMO.</div>
   </section>
 
-  <section data-label="Protocol and Baselines" data-screen-label="17 Protocol" data-speaker-notes="Seven baselines spanning classical, independent-RL, and structured methods. Primary metric is mean delay. One transparency note up front: these are single-seed runs; I treat differences of a few seconds as trends, not significant rankings." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
-    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">17 — Experimental Setup</div>
+  <section data-label="Protocol and Baselines" data-screen-label="14 Protocol" data-speaker-notes="Seven baselines spanning classical, independent-RL, and structured methods. Primary metric is mean delay. One transparency note up front: these are single-seed runs; I treat differences of a few seconds as trends, not significant rankings." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">14 — Experimental Setup</div>
     <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Protocol and baselines</h2>
 
     <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:44px;">
@@ -418,8 +335,8 @@
     <div style="margin-top:28px;background:#F1E2D9;border-radius:4px;padding:18px 26px;font-size:21px;color:var(--accent-deep);">Single-seed runs (seed 0) — resource constrained. Results are directional; treat small differences as trends, not rankings.</div>
   </section>
 
-  <section data-label="Demo" data-screen-label="18 Demo" data-speaker-notes="Same hour of traffic on ingolstadt21, same demand seed. Left: the deployed fixed-time plan -- mean delay 145.4 seconds, watch the queues build and spill back. Right: FGSv3-PPO holding mean delay to 68.4 seconds by anticipating incoming platoons." style="width:100%;height:100%;background:var(--ink);position:relative;font-family:var(--body);color:var(--tile-paper);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
-    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent);text-transform:uppercase;">18 — Demo</div>
+  <section data-label="Demo" data-screen-label="15 Demo" data-speaker-notes="Same hour of traffic on ingolstadt21, same demand seed. Left: the deployed fixed-time plan -- mean delay 145.4 seconds, watch the queues build and spill back. Right: FGSv3-PPO holding mean delay to 68.4 seconds by anticipating incoming platoons." style="width:100%;height:100%;background:var(--ink);position:relative;font-family:var(--body);color:var(--tile-paper);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent);text-transform:uppercase;">15 — Demo</div>
     <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:12px 0 20px 0;">Watch the policy work</h2>
 
     <div style="flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;gap:32px;">
@@ -439,8 +356,8 @@
     <div style="margin-top:12px;font-family:var(--head);font-size:15px;color:var(--muted);">Rollout recordings, ingolstadt21 (N=21) — same demand seed and simulated hour for both.</div>
   </section>
 
-  <section data-label="Main Results" data-screen-label="19 Main Results" data-speaker-notes="Big picture across all six scenarios. At single intersections everyone converges to similar delay. At corridor scale independent methods hold their own. At regional scale, differences explode." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
-    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">19 — Results</div>
+  <section data-label="Main Results" data-screen-label="16 Main Results" data-speaker-notes="Big picture across all six scenarios. At single intersections everyone converges to similar delay. At corridor scale independent methods hold their own. At regional scale, differences explode." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">16 — Results</div>
     <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Main results across scale tiers</h2>
 
     <div style="flex:1;display:flex;align-items:flex-end;justify-content:space-around;background:var(--bg-card);border-radius:4px;padding:40px 50px 30px;gap:40px;">
@@ -487,8 +404,8 @@
     </div>
   </section>
 
-  <section data-label="Headline Regional Scale" data-screen-label="20 Headline" data-speaker-notes="On the largest scenario, FGS beats the published graph-based method CoLight by 68% and value-based DQN by 13%, reaching parity with a strong tuned PPO. First-generation FGS scored 234.9 s here; the architecture repairs recovered 71%." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
-    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">20 — Results</div>
+  <section data-label="Headline Regional Scale" data-screen-label="17 Headline" data-speaker-notes="On the largest scenario, FGS beats the published graph-based method CoLight by 68% and value-based DQN by 13%, reaching parity with a strong tuned PPO. First-generation FGS scored 234.9 s here; the architecture repairs recovered 71%." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">17 — Results</div>
     <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Headline: regional scale</h2>
 
     <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:40px;">
@@ -516,8 +433,8 @@
     <div style="margin-top:24px;font-size:22px;color:var(--ink-soft);">Graph-aware FGS dominates the other graph-based method decisively, and reaches parity with tuned independent PPO. First-generation FGS scored 234.9 s here — the architecture repairs recovered 71% of that gap.</div>
   </section>
 
-  <section data-label="Why FGS Beats CoLight" data-screen-label="21 Why CoLight" data-speaker-notes="The headline number needs a mechanism. CoLight uses dot-product attention with globally shared keys and queries, so it assigns nearly uniform weights across heterogeneous neighbours; it was validated on regular Chinese grids and here underperforms even independent DQN. GATv2 uses per-edge additive attention that gives structurally distinct nodes distinct weights -- exactly what ingolstadt21's irregular topology needs." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
-    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">21 — Discussion</div>
+  <section data-label="Why FGS Beats CoLight" data-screen-label="18 Why CoLight" data-speaker-notes="The headline number needs a mechanism. CoLight uses dot-product attention with globally shared keys and queries, so it assigns nearly uniform weights across heterogeneous neighbours; it was validated on regular Chinese grids and here underperforms even independent DQN. GATv2 uses per-edge additive attention that gives structurally distinct nodes distinct weights -- exactly what ingolstadt21's irregular topology needs." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">18 — Discussion</div>
     <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Why FGS beats the other graph method</h2>
 
     <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:40px;">
@@ -549,8 +466,8 @@
     <div style="margin-top:24px;font-size:22px;color:var(--ink-soft);">−68% vs CoLight on ingolstadt21, −57% on cologne8. Static shared-weight attention <em>averages</em> across neighbours; dynamic per-edge attention <em>focuses</em> each agent on the ones that carry demand.</div>
   </section>
 
-  <section data-label="Demo PPO vs FGSv3-PPO" data-screen-label="22 Demo II" data-speaker-notes="This is the harder comparison -- not against a weak baseline, but against independent PPO, the strongest non-graph method. Same demand seed, same simulated hour on ingolstadt21. On mean delay the two are nearly tied: 67.2 seconds for PPO versus 68.4 for FGSv3-PPO. But watch the footage: PPO's queues spill back and cascade across intersections, while FGSv3-PPO's graph-aware coordination keeps them short. That's why FGSv3-PPO leads on waiting time and queue length even at delay parity -- the full four-metric breakdown is on the next results slide." style="width:100%;height:100%;background:var(--ink);position:relative;font-family:var(--body);color:var(--tile-paper);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
-    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent);text-transform:uppercase;">22 — Demo</div>
+  <section data-label="Demo PPO vs FGSv3-PPO" data-screen-label="19 Demo II" data-speaker-notes="This is the harder comparison -- not against a weak baseline, but against independent PPO, the strongest non-graph method. Same demand seed, same simulated hour on ingolstadt21. On mean delay the two are nearly tied: 67.2 seconds for PPO versus 68.4 for FGSv3-PPO. But watch the footage: PPO's queues spill back and cascade across intersections, while FGSv3-PPO's graph-aware coordination keeps them short. That's why FGSv3-PPO leads on waiting time and queue length even at delay parity -- the full four-metric breakdown is on the next results slide." style="width:100%;height:100%;background:var(--ink);position:relative;font-family:var(--body);color:var(--tile-paper);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent);text-transform:uppercase;">19 — Demo</div>
     <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:12px 0 20px 0;">Same numbers, different reality</h2>
 
     <div style="flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;gap:32px;">
@@ -589,8 +506,8 @@
     <div style="margin-top:14px;font-family:var(--head);font-size:15px;color:var(--muted);">Rollout recordings, ingolstadt21 (N=21) — same demand seed and simulated hour for both. Full four-metric breakdown next.</div>
   </section>
 
-  <section data-label="Beyond Mean Delay" data-screen-label="23 Beyond Mean Delay" data-speaker-notes="Delay parity with PPO is only half the picture. The multi-metric radar shows FGSv3-PPO is strongest on waiting time and queue length on ingolstadt21, with PPO and IndSAC only close on delay and trip time. The MFD tells the same story spatially: FGSv3-PPO holds a compact high-flow operating band, where PPO drifts into more dispersed, lower-flow states -- same average, less reliable underneath." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
-    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">23 — Results</div>
+  <section data-label="Beyond Mean Delay" data-screen-label="20 Beyond Mean Delay" data-speaker-notes="Delay parity with PPO is only half the picture. The multi-metric radar shows FGSv3-PPO is strongest on waiting time and queue length on ingolstadt21, with PPO and IndSAC only close on delay and trip time. The MFD tells the same story spatially: FGSv3-PPO holds a compact high-flow operating band, where PPO drifts into more dispersed, lower-flow states -- same average, less reliable underneath." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">20 — Results</div>
     <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Delay parity isn't the whole story</h2>
 
     <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:40px;">
@@ -618,8 +535,8 @@
     <div style="margin-top:24px;font-size:22px;color:var(--ink-soft);">Mean delay ties FGSv3-PPO to PPO, but underneath: shorter waits, shorter queues, and a more consistent traffic-flow regime — exactly what graph-aware coordination should buy you.</div>
   </section>
 
-  <section data-label="Ablation Encoder and Attention" data-screen-label="24 Ablation I" data-speaker-notes="This is the design-space payoff -- the two assumptions from the related-work slide, tested. FRAP's phase-competition prior assumes every phase controls an opposing pair of movements; German junctions with mixed phase counts violate this." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
-    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">24 — Ablation</div>
+  <section data-label="Ablation Encoder and Attention" data-screen-label="21 Ablation I" data-speaker-notes="This is the design-space payoff -- the two assumptions from the related-work slide, tested. FRAP's phase-competition prior assumes every phase controls an opposing pair of movements; German junctions with mixed phase counts violate this." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">21 — Ablation</div>
     <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Ablation I: encoder &amp; attention</h2>
 
     <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:40px;">
@@ -653,8 +570,8 @@
     <div style="margin-top:24px;font-size:22px;color:var(--ink-soft);">FRAP assumes every phase controls an opposing pair of movements — German 2/4/6-phase junctions violate that, and the penalty grows with scale. Dynamic attention (GATv2) only matters where neighbors are heterogeneous.</div>
   </section>
 
-  <section data-label="Why FRAP Fails" data-screen-label="25 Why FRAP Fails" data-speaker-notes="FRAP encodes a strong prior -- every phase controls a fixed opposing pair of movements. German RESCO junctions mix 2, 4, and 6-phase intersections, violating that. When a phase controls fewer than two movements the competition normalisation undersaturates, so the feature reads as low demand; a single-movement phase drives the output toward zero. The actor then serves the encoding, not the traffic. The penalty scales with the share of misaligned junctions -- 11% at N=8, 2.6x at N=21. This is a negative result of independent interest: FRAP is widely adopted without topology-specific validation." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
-    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">25 — Discussion</div>
+  <section data-label="Why FRAP Fails" data-screen-label="22 Why FRAP Fails" data-speaker-notes="FRAP encodes a strong prior -- every phase controls a fixed opposing pair of movements. German RESCO junctions mix 2, 4, and 6-phase intersections, violating that. When a phase controls fewer than two movements the competition normalisation undersaturates, so the feature reads as low demand; a single-movement phase drives the output toward zero. The actor then serves the encoding, not the traffic. The penalty scales with the share of misaligned junctions -- 11% at N=8, 2.6x at N=21. This is a negative result of independent interest: FRAP is widely adopted without topology-specific validation." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">22 — Discussion</div>
     <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Why FRAP breaks on German junctions</h2>
 
     <div style="flex:1;display:grid;grid-template-columns:1.15fr 1fr;gap:40px;">
@@ -694,8 +611,8 @@
     </div>
   </section>
 
-  <section data-label="Ablation RL Algorithm" data-screen-label="26 Ablation II" data-speaker-notes="Algorithm choice is conditional: SAC wins at moderate scale but needed the factored critic to run at N=21. SAC discovered reward hacking -- I caught it because delay and queue told contradictory stories, and excluded those checkpoints." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
-    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">26 — Ablation</div>
+  <section data-label="Ablation RL Algorithm" data-screen-label="23 Ablation II" data-speaker-notes="Algorithm choice is conditional: SAC wins at moderate scale but needed the factored critic to run at N=21. SAC discovered reward hacking -- I caught it because delay and queue told contradictory stories, and excluded those checkpoints." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">23 — Ablation</div>
     <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Ablation II: RL algorithm &amp; an honest failure mode</h2>
 
     <div style="flex:1;display:grid;grid-template-columns:1fr 1.4fr;gap:40px;">
@@ -734,8 +651,8 @@
     <div style="margin-top:24px;font-size:22px;color:var(--ink-soft);">SUMO's waiting-time counter pauses the moment a vehicle moves — rapid phase cycling briefly clears one lane per switch, harvesting reward while every other lane keeps queuing. PPO is structurally immune: on-policy updates see the queue blow-up immediately. Fix: pressure-based reward.</div>
   </section>
 
-  <section data-label="Convergence and Generalization" data-screen-label="27 Convergence" data-speaker-notes="Best-checkpoint numbers hide a stability story. First-generation FGSP completes all 200 episodes but shows a huge train-to-validation gap on ingolstadt21 -- training delay around 78 seconds, best validation 234.9 -- much larger than DQN's gap, meaning it overfits the training demand distribution. FGSv3-PPO is the only FGS variant that converges stably: validation settles from episode 7, best 68.4 at episode 90. SAC variants are high-variance and their early best checkpoints are gaming artifacts. At corridor scale everyone converges within 100 episodes because local observation is enough." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
-    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">27 — Discussion</div>
+  <section data-label="Convergence and Generalization" data-screen-label="24 Convergence" data-speaker-notes="Best-checkpoint numbers hide a stability story. First-generation FGSP completes all 200 episodes but shows a huge train-to-validation gap on ingolstadt21 -- training delay around 78 seconds, best validation 234.9 -- much larger than DQN's gap, meaning it overfits the training demand distribution. FGSv3-PPO is the only FGS variant that converges stably: validation settles from episode 7, best 68.4 at episode 90. SAC variants are high-variance and their early best checkpoints are gaming artifacts. At corridor scale everyone converges within 100 episodes because local observation is enough." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">24 — Discussion</div>
     <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Convergence &amp; generalization</h2>
 
     <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:40px;">
@@ -780,8 +697,8 @@
     <div style="margin-top:24px;font-size:22px;color:var(--ink-soft);">The graph-conditioned representation is more sensitive to demand shift — the FGSv2→v3 repairs closed the gap. Remedies for the residual risk: domain randomization during training and multi-seed averaging.</div>
   </section>
 
-  <section data-label="Why Coordination Scales" data-screen-label="28 Why Scale" data-speaker-notes="This is the mechanism behind the central finding. Traffic networks are spatially coupled: a red phase blocks the next intersection, queues spill back and eat into upstream green time. At one to three intersections a controller's own detectors capture the demand context. Beyond about seven, the dependency spans multiple hops -- longer than any single agent can observe -- so explicit inter-agent communication becomes necessary. This is grounded in the Macroscopic Fundamental Diagram: network flow emerges from local interactions." style="width:100%;height:100%;background:var(--ink);position:relative;font-family:var(--body);color:var(--tile-paper);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
-    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent);text-transform:uppercase;">28 — Discussion</div>
+  <section data-label="Why Coordination Scales" data-screen-label="25 Why Scale" data-speaker-notes="This is the mechanism behind the central finding. Traffic networks are spatially coupled: a red phase blocks the next intersection, queues spill back and eat into upstream green time. At one to three intersections a controller's own detectors capture the demand context. Beyond about seven, the dependency spans multiple hops -- longer than any single agent can observe -- so explicit inter-agent communication becomes necessary. This is grounded in the Macroscopic Fundamental Diagram: network flow emerges from local interactions." style="width:100%;height:100%;background:var(--ink);position:relative;font-family:var(--body);color:var(--tile-paper);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent);text-transform:uppercase;">25 — Discussion</div>
     <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;color:var(--tile-paper);">Why coordination pays only at scale</h2>
 
     <div style="flex:1;display:grid;grid-template-columns:0.82fr 1fr;gap:40px;">
@@ -807,8 +724,8 @@
     <div style="margin-top:24px;font-size:22px;color:#C9C6BC;">Grounded in traffic theory: the Macroscopic Fundamental Diagram shows network-level flow emerges from local spatial interactions. FGS carries the GNN traffic-forecasting insight into <em>control</em> via GATv2 message passing.</div>
   </section>
 
-  <section data-label="Central Finding" data-screen-label="29 Central Finding" data-speaker-notes="Graph communication is a no-op at one intersection, unnecessary at corridor scale where local sensing suffices, and decisive at regional scale where congestion propagates beyond any single agent's horizon." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
-    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">29 — Results</div>
+  <section data-label="Central Finding" data-screen-label="26 Central Finding" data-speaker-notes="Graph communication is a no-op at one intersection, unnecessary at corridor scale where local sensing suffices, and decisive at regional scale where congestion propagates beyond any single agent's horizon." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">26 — Results</div>
     <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Benefit grows with scale</h2>
 
     <div style="flex:1;display:flex;align-items:flex-end;background:var(--bg-card);border-radius:4px;padding:50px 70px 40px;gap:70px;justify-content:center;">
@@ -841,8 +758,8 @@
     <div style="text-align:center;margin-top:20px;font-family:var(--head);font-weight:500;font-size:26px;color:var(--accent-dark);">Coordination pays where local observation ends (N ≳ 8).</div>
   </section>
 
-  <section data-label="SQ1 Answer" data-screen-label="30 SQ1" data-speaker-notes="SQ1, baseline comparison. The verdict: competitive at scale and superior to the graph-based CoLight at every tier. On the largest scenario FGSv3-PPO hits 68.4 seconds -- 68% under CoLight, 13% under DQN, parity with tuned PPO. At corridor scale FGS beats DQN and CoLight but trails standalone PPO and SAC. At a single intersection there is no consistent gain -- the graph module is a no-op. Caveat: single-seed, so gaps under three or four seconds are directional." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
-    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">30 — Answering the RQs</div>
+  <section data-label="SQ1 Answer" data-screen-label="27 SQ1" data-speaker-notes="SQ1, baseline comparison. The verdict: competitive at scale and superior to the graph-based CoLight at every tier. On the largest scenario FGSv3-PPO hits 68.4 seconds -- 68% under CoLight, 13% under DQN, parity with tuned PPO. At corridor scale FGS beats DQN and CoLight but trails standalone PPO and SAC. At a single intersection there is no consistent gain -- the graph module is a no-op. Caveat: single-seed, so gaps under three or four seconds are directional." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">27 — Answering the RQs</div>
     <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 18px 0;">SQ1 — Is FGS competitive with the baselines?</h2>
     <div style="display:flex;align-items:center;gap:16px;background:var(--good);color:#fff;border-radius:4px;padding:18px 28px;margin-bottom:26px;">
       <div style="font-family:var(--head);font-weight:700;font-size:20px;">VERDICT</div>
@@ -869,8 +786,8 @@
     <div style="margin-top:24px;font-size:20px;color:var(--muted);"><strong style="color:var(--ink-soft);">Caveat:</strong> single-seed results — differences within 3–4 s are directional trends, not statistically significant rankings.</div>
   </section>
 
-  <section data-label="SQ2 Answer" data-screen-label="31 SQ2" data-speaker-notes="SQ2, the design-space analysis. Three determinants, in order of impact. First, encoder-to-topology compatibility -- the FRAP penalty runs from 11% to 2.6x. Second, attention expressiveness -- GATv2 versus GAT is 2.1x at N=21 but negligible at N=8. Third, critic scalability -- the centralized critic fails at 21 agents, the factored critic is fifteen times smaller and lets SAC run. Honesty note: the v2-to-v3 step changed two things at once, so their individual contributions cannot be decomposed from this data." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
-    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">31 — Answering the RQs</div>
+  <section data-label="SQ2 Answer" data-screen-label="28 SQ2" data-speaker-notes="SQ2, the design-space analysis. Three determinants, in order of impact. First, encoder-to-topology compatibility -- the FRAP penalty runs from 11% to 2.6x. Second, attention expressiveness -- GATv2 versus GAT is 2.1x at N=21 but negligible at N=8. Third, critic scalability -- the centralized critic fails at 21 agents, the factored critic is fifteen times smaller and lets SAC run. Honesty note: the v2-to-v3 step changed two things at once, so their individual contributions cannot be decomposed from this data." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">28 — Answering the RQs</div>
     <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 18px 0;">SQ2 — Which design choices actually matter?</h2>
     <div style="display:flex;align-items:center;gap:16px;background:var(--good);color:#fff;border-radius:4px;padding:18px 28px;margin-bottom:26px;">
       <div style="font-family:var(--head);font-weight:700;font-size:20px;">VERDICT</div>
@@ -897,8 +814,8 @@
     <div style="margin-top:24px;font-size:20px;color:var(--muted);"><strong style="color:var(--ink-soft);">Honesty note:</strong> the FGSv2→v3 step changed the communication signal <em>and</em> the critic together — their individual contributions can't be decomposed from this data.</div>
   </section>
 
-  <section data-label="SQ3 Answer" data-screen-label="32 SQ3" data-speaker-notes="SQ3, scale and topology. The graph-communication benefit is scale-gated: a no-op at one intersection, emerging at corridor scale, decisive at regional scale where it reaches 68% over CoLight. GATv2 becomes critical specifically at N=21, doubling delay if you drop to plain GAT. Encoder mismatch also amplifies with scale. The threshold for a consistent graph advantage on these German topologies is roughly N of 8 to 21." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
-    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">32 — Answering the RQs</div>
+  <section data-label="SQ3 Answer" data-screen-label="29 SQ3" data-speaker-notes="SQ3, scale and topology. The graph-communication benefit is scale-gated: a no-op at one intersection, emerging at corridor scale, decisive at regional scale where it reaches 68% over CoLight. GATv2 becomes critical specifically at N=21, doubling delay if you drop to plain GAT. Encoder mismatch also amplifies with scale. The threshold for a consistent graph advantage on these German topologies is roughly N of 8 to 21." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">29 — Answering the RQs</div>
     <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 18px 0;">SQ3 — How do scale &amp; topology change the answer?</h2>
     <div style="display:flex;align-items:center;gap:16px;background:var(--good);color:#fff;border-radius:4px;padding:18px 28px;margin-bottom:26px;">
       <div style="font-family:var(--head);font-weight:700;font-size:20px;">VERDICT</div>
@@ -925,8 +842,8 @@
     <div style="margin-top:24px;font-size:20px;color:var(--muted);"><strong style="color:var(--ink-soft);">Also:</strong> GATv2 becomes critical at N=21 (2.1× vs GAT), encoder mismatch amplifies with scale — the consistent-advantage threshold is ≈ N = 8–21 on these German topologies.</div>
   </section>
 
-  <section data-label="Answering the RQs" data-screen-label="33 MRQ" data-speaker-notes="Walk each card in about 25 seconds. Phrase the MRQ answer as the thesis's takeaway design guideline for anyone building MARL-TSC on European networks." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
-    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">33 — Answering the RQs</div>
+  <section data-label="Answering the RQs" data-screen-label="30 MRQ" data-speaker-notes="Walk each card in about 25 seconds. Phrase the MRQ answer as the thesis's takeaway design guideline for anyone building MARL-TSC on European networks." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">30 — Answering the RQs</div>
     <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 22px 0;">The main research question, answered</h2>
 
     <div style="display:flex;gap:16px;margin-bottom:24px;flex-wrap:wrap;">
@@ -949,8 +866,8 @@
     </div>
   </section>
 
-  <section data-label="Limitations" data-screen-label="34 Limitations" data-speaker-notes="Before the contributions, the honest limitations. Everything reported is single-seed -- point estimates without variance, so multi-seed over seeds zero to four with bootstrap intervals is the top-priority follow-on. SAC is unstable at 21 agents even with the factored critic, from the deadly triad plus MARL non-stationarity; it would need three to five hundred episodes with entropy tuning. The reward is gameable -- a pressure or queue-clearing signal is the fix. And FGSP shows a train-to-validation demand shift that domain randomisation would address." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
-    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">34 — Discussion</div>
+  <section data-label="Limitations" data-screen-label="31 Limitations" data-speaker-notes="Before the contributions, the honest limitations. Everything reported is single-seed -- point estimates without variance, so multi-seed over seeds zero to four with bootstrap intervals is the top-priority follow-on. SAC is unstable at 21 agents even with the factored critic, from the deadly triad plus MARL non-stationarity; it would need three to five hundred episodes with entropy tuning. The reward is gameable -- a pressure or queue-clearing signal is the fix. And FGSP shows a train-to-validation demand shift that domain randomisation would address." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">31 — Discussion</div>
     <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Limitations &amp; threats to validity</h2>
 
     <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:28px;">
@@ -978,8 +895,8 @@
     <div style="margin-top:24px;font-size:20px;color:var(--muted);">None of these undermine the central finding — they bound the strength of the claim and set a clear, prioritized validation agenda.</div>
   </section>
 
-  <section data-label="Contributions" data-screen-label="35 Contributions" data-speaker-notes="End on the analytical contribution -- the field gets reusable design guidelines, not just one more architecture. Name multi-seed validation yourself as the first follow-on step. Thank the committee; invite questions." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
-    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">35 — Conclusion</div>
+  <section data-label="Contributions" data-screen-label="32 Contributions" data-speaker-notes="End on the analytical contribution -- the field gets reusable design guidelines, not just one more architecture. Name multi-seed validation yourself as the first follow-on step. Thank the committee; invite questions." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">32 — Conclusion</div>
     <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Contributions &amp; future work</h2>
 
     <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:40px;">
@@ -1011,8 +928,104 @@
     <div style="text-align:center;margin-top:28px;font-family:var(--body);font-size:25px;font-style:italic;color:var(--ink-soft);">Thank you.</div>
   </section>
 
-  <section data-label="B1 Hypotheses" data-screen-label="B1 Hypotheses" data-speaker-notes="For the what-were-your-hypotheses question. H1 partial support, H2 confirmed in selected scenarios, H3 confirmed, H4 confirmed." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+  <section data-label="Thank You" data-screen-label="33 Title" data-speaker-notes="Closing slide — thank the committee and open the floor for questions." style="width:100%;height:100%;background:var(--ink);position:relative;overflow:hidden;font-family:var(--body);">
+    <img src="uploads/topology_orange.png" alt="Ingolstadt21 signal network topology" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block;">
+  </section>
+
+  <section data-label="System Architecture" data-screen-label="B1 Architecture" data-speaker-notes="For infrastructure/reproducibility questions. Shows the full software stack: SUMO for simulation, sumo-rl wrapping PettingZoo's ParallelEnv, the local encoder (MLP/FRAP) feeding graphML attention (GAT/GATv2), ray rllib for actor-critic training, and Weights &amp; Biases for experiment tracking." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
     <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--muted);text-transform:uppercase;">B1 — Backup</div>
+    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">System architecture</h2>
+
+    <div style="flex:1;min-height:0;border-radius:4px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+      <img src="uploads/system_architecture.png" alt="System architecture: SUMO simulator feeding sumo-rl, which wraps PettingZoo ParallelEnv, a local torch encoder (MLP/FRAP), graphML attention (GAT/GATv2), and ray rllib actor-critic training, logged to Weights &amp; Biases" style="width:100%;height:auto;max-height:100%;object-fit:contain;">
+    </div>
+  </section>
+
+  <section data-label="Three Generations" data-screen-label="B2 Generations" data-speaker-notes="The final architecture wasn't designed on a whiteboard. A first-generation ablation tested four encoder-communication combinations and exposed the scalar bottleneck. It was reached through three generations of hypothesis, experiment, diagnosed failure, targeted repair. This trajectory is itself a contribution." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">B2 — Backup</div>
+    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Not designed once — debugged into existence</h2>
+
+    <div style="flex:1;display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;align-items:stretch;">
+      <div style="background:var(--bg-card);border-radius:4px 0 0 4px;padding:36px;display:flex;flex-direction:column;gap:14px;">
+        <div style="font-family:var(--head);font-size:18px;color:var(--muted);text-transform:uppercase;">Gen-1 — 4 variants ablated</div>
+        <div style="font-family:var(--head);font-weight:500;font-size:24px;">FRAP scalar output</div>
+        <div style="font-size:21px;color:var(--ink-soft);line-height:1.5;">1×1 conv collapses each phase's competition features to one scalar before the graph ever sees it.</div>
+        <div style="margin-top:auto;display:flex;align-items:center;gap:10px;color:var(--accent-dark);font-family:var(--head);font-size:18px;">✕ scalar bottleneck</div>
+      </div>
+      <div style="background:var(--bg-card);border-left:2px solid var(--bg);padding:36px;display:flex;flex-direction:column;gap:14px;">
+        <div style="font-family:var(--head);font-size:18px;color:var(--muted);text-transform:uppercase;">FGSv2</div>
+        <div style="font-family:var(--head);font-weight:500;font-size:24px;">Per-phase action tokens</div>
+        <div style="font-size:21px;color:var(--ink-soft);line-height:1.5;">Tokens tapped post-competition — message carries phase rankings, not raw demand. Centralized critic O(N·d) explodes at N=21.</div>
+        <div style="margin-top:auto;display:flex;align-items:center;gap:10px;color:var(--accent-dark);font-family:var(--head);font-size:18px;">✕ wrong message + critic OOM</div>
+      </div>
+      <div style="background:var(--accent);border-radius:0 4px 4px 0;border-left:2px solid var(--bg);padding:36px;display:flex;flex-direction:column;gap:14px;color:#fff;">
+        <div style="font-family:var(--head);font-size:18px;color:#F5E4DA;text-transform:uppercase;">FGS (final)</div>
+        <div style="font-family:var(--head);font-weight:500;font-size:24px;">Demand tapped earlier + gated</div>
+        <div style="font-size:21px;line-height:1.5;">Message now taps pre-competition phase demand; factored neighborhood critic O(d<sub>c</sub>) — independent of N.</div>
+        <div style="margin-top:auto;display:flex;align-items:center;gap:10px;font-family:var(--head);font-size:18px;">✓ resolved</div>
+      </div>
+    </div>
+  </section>
+
+  <section data-label="FRAP Encoder Detail" data-screen-label="B3 FRAP Detail" data-speaker-notes="Zooming into Module I's FRAP encoder: four steps turn raw per-movement demand into either a phase score or an action token. Step 1 extracts demand and phase indicator per movement into a movement embedding. Step 2 pools movement embeddings per candidate phase. Step 3 builds a pairwise competition feature between the selected phase and each competitor, combining relative demand and conflict relation. Step 4 outputs either the original FRAP scalar phase score, or -- FGS's deviation -- the full C-dimensional action token z_i,a, keeping everything per-phase instead of collapsing to one number before Module II and III." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">B3 — Backup</div>
+    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Inside Module I: the FRAP encoder</h2>
+
+    <div style="flex:1;min-height:0;border-radius:4px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+      <img src="uploads/frap.png" alt="FRAP encoder: movement embedding, phase embedding, pairwise competition feature, and outputs (original FRAP phase score vs. FGS action token)" style="width:100%;height:auto;max-height:100%;object-fit:contain;">
+    </div>
+  </section>
+
+  <section data-label="GAT Mechanism" data-screen-label="B4 GAT Mechanism" data-speaker-notes="How graph attention actually aggregates: node v's neighbors are pooled with learned attention weights into an updated embedding v', letting the model weigh some neighbors more than others rather than averaging blindly." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">B4 — Backup</div>
+    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">The mechanics of graph attention</h2>
+
+    <div style="flex:1;min-height:0;border-radius:4px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+      <img src="assets/gat_mechanism.png" alt="Graph attention mechanism: node v attends over its neighbors, then attention-weighted aggregation produces the updated node embedding v'" style="width:100%;height:auto;max-height:100%;object-fit:contain;">
+    </div>
+  </section>
+
+  <section data-label="FGS Pipeline" data-screen-label="B5 Pipeline" data-speaker-notes="FGS equals Framework for Graph-aware Signal control. Each intersection is an agent. The key idea is decoupling: encoder, communication, and RL algorithm are independently pluggable, trained centrally and executed decentrally. The FRAP encoder is tapped at two internal points -- once for the action tokens Module III consumes, once for the raw demand signal Module II shares." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--accent-dark);text-transform:uppercase;">B5 — Backup</div>
+    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">FGS in one picture</h2>
+
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:36px;">
+      <div style="display:flex;align-items:stretch;gap:20px;">
+        <div style="flex:1;background:var(--bg-card);border-radius:4px;padding:32px;text-align:center;">
+          <div style="font-family:var(--head);font-size:17px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">Module I</div>
+          <div style="font-family:var(--head);font-weight:500;font-size:28px;margin-bottom:16px;">Encoder</div>
+          <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+            <div style="background:var(--tile-paper);border-radius:20px;padding:8px 18px;font-family:var(--head);font-size:17px;">MLP</div>
+            <div style="background:var(--tile-paper);border-radius:20px;padding:8px 18px;font-family:var(--head);font-size:17px;">FRAP</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;font-size:36px;color:var(--muted);">→</div>
+        <div style="flex:1;background:var(--bg-card);border-radius:4px;padding:32px;text-align:center;">
+          <div style="font-family:var(--head);font-size:17px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">Module II</div>
+          <div style="font-family:var(--head);font-weight:500;font-size:28px;margin-bottom:16px;">Graph Communication</div>
+          <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+            <div style="background:var(--tile-paper);border-radius:20px;padding:8px 18px;font-family:var(--head);font-size:17px;">none</div>
+            <div style="background:var(--tile-paper);border-radius:20px;padding:8px 18px;font-family:var(--head);font-size:17px;">GAT</div>
+            <div style="background:var(--tile-paper);border-radius:20px;padding:8px 18px;font-family:var(--head);font-size:17px;">GATv2 (gated)</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;font-size:36px;color:var(--muted);">→</div>
+        <div style="flex:1;background:var(--bg-card);border-radius:4px;padding:32px;text-align:center;">
+          <div style="font-family:var(--head);font-size:17px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">Module III</div>
+          <div style="font-family:var(--head);font-weight:500;font-size:28px;margin-bottom:16px;">RL Optimizer</div>
+          <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+            <div style="background:var(--tile-paper);border-radius:20px;padding:8px 18px;font-family:var(--head);font-size:17px;">DQN</div>
+            <div style="background:var(--tile-paper);border-radius:20px;padding:8px 18px;font-family:var(--head);font-size:17px;">PPO</div>
+            <div style="background:var(--tile-paper);border-radius:20px;padding:8px 18px;font-family:var(--head);font-size:17px;">SAC</div>
+          </div>
+        </div>
+      </div>
+      <div style="font-size:var(--type-small);color:var(--ink-soft);max-width:1300px;">SUMO observation x<sub>i</sub> → phase policy π<sub>i</sub>. Encoder, communication, and RL are independently pluggable — trained centrally, executed decentrally (CTDE). The encoder is tapped twice: action tokens skip straight to Module III, a separate demand embedding feeds Module II.</div>
+    </div>
+  </section>
+
+  <section data-label="Hypotheses" data-screen-label="B6 Hypotheses" data-speaker-notes="For the what-were-your-hypotheses question. H1 partial support, H2 confirmed in selected scenarios, H3 confirmed, H4 confirmed." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--muted);text-transform:uppercase;">B6 — Backup</div>
     <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Hypotheses &amp; verdicts</h2>
 
     <div style="flex:1;display:flex;flex-direction:column;gap:20px;justify-content:center;">
@@ -1039,8 +1052,8 @@
     </div>
   </section>
 
-  <section data-label="B2 Hyperparameters" data-screen-label="B2 Hyperparameters" data-speaker-notes="For reproducibility questions. Full architecture and training hyperparameter tables live in the thesis appendix." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
-    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--muted);text-transform:uppercase;">B2 — Backup</div>
+  <section data-label="Hyperparameters" data-screen-label="B7 Hyperparameters" data-speaker-notes="For reproducibility questions. Full architecture and training hyperparameter tables live in the thesis appendix." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--muted);text-transform:uppercase;">B7 — Backup</div>
     <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Full hyperparameter tables</h2>
 
     <div style="flex:1;display:grid;grid-template-columns:0.85fr 1.4fr;gap:36px;">
@@ -1092,8 +1105,8 @@
     </div>
   </section>
 
-  <section data-label="B3 Full Results Table" data-screen-label="B3 Full Results" data-speaker-notes="Full main-results table: ten methods across six scenarios, best-validation mean delay. Legend explains the dagger and double-dagger annotations used throughout." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
-    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--muted);text-transform:uppercase;">B3 — Backup</div>
+  <section data-label="Full Results Table" data-screen-label="B8 Full Results" data-speaker-notes="Full main-results table: ten methods across six scenarios, best-validation mean delay. Legend explains the dagger and double-dagger annotations used throughout." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--muted);text-transform:uppercase;">B8 — Backup</div>
     <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 20px 0;">Full main-results table</h2>
     <div style="font-family:var(--head);font-size:16px;color:var(--muted);margin-bottom:14px;">Best-validation mean delay (s, lower is better) — single seed. <strong style="color:var(--ink-soft);">Bold</strong> = best per scenario among converged results.</div>
 
@@ -1132,8 +1145,8 @@
     </div>
   </section>
 
-  <section data-label="B4 Dec-POMDP" data-screen-label="B4 Dec-POMDP" data-speaker-notes="For the formal-definition question. Formalizes the multi-agent traffic signal control problem as a Dec-POMDP." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
-    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--muted);text-transform:uppercase;">B4 — Backup</div>
+  <section data-label="Dec-POMDP" data-screen-label="B9 Dec-POMDP" data-speaker-notes="For the formal-definition question. Formalizes the multi-agent traffic signal control problem as a Dec-POMDP." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--muted);text-transform:uppercase;">B9 — Backup</div>
     <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Dec-POMDP formalization</h2>
 
     <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:28px;">
@@ -1157,8 +1170,8 @@
     </div>
   </section>
 
-  <section data-label="B5 MFD" data-screen-label="B5 MFD" data-speaker-notes="The full traffic-engineering interpretation, all five methods overlaid. FixedTime, DQN and FGSv3-PPO all reach a high-production peak near 9,000-13,000 veh-km/h before an accumulation of about 300-400 vehicles. PPO-original oscillates on a lower, unstable plateau. FGSv3-SAC never reaches the high-flow branch and instead slides into hypercongestion past 1,000 vehicles, production collapsing toward 1,500 veh-km/h -- the spatial signature of the SAC reward-gaming instability discussed earlier." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
-    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--muted);text-transform:uppercase;">B5 — Backup</div>
+  <section data-label="MFD" data-screen-label="B10 MFD" data-speaker-notes="The full traffic-engineering interpretation, all five methods overlaid. FixedTime, DQN and FGSv3-PPO all reach a high-production peak near 9,000-13,000 veh-km/h before an accumulation of about 300-400 vehicles. PPO-original oscillates on a lower, unstable plateau. FGSv3-SAC never reaches the high-flow branch and instead slides into hypercongestion past 1,000 vehicles, production collapsing toward 1,500 veh-km/h -- the spatial signature of the SAC reward-gaming instability discussed earlier." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--muted);text-transform:uppercase;">B10 — Backup</div>
     <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 16px 0;">Macroscopic fundamental diagram — all methods</h2>
 
     <div style="flex:1;min-height:0;background:var(--tile-paper);border-radius:4px;padding:18px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
@@ -1167,8 +1180,8 @@
     <div style="margin-top:18px;font-size:21px;color:var(--ink-soft);">FixedTime, DQN and FGSv3-PPO all climb to a high-production peak (9,000–13,000 veh-km/h) before accumulation reaches ~300–400 vehicles. PPO-original oscillates on a lower, unstable plateau. FGSv3-SAC never reaches the high-flow branch — production collapses toward 1,500 veh-km/h past 1,000 vehicles, the spatial signature of the SAC reward-gaming instability (Ablation II).</div>
   </section>
 
-  <section data-label="B6 Train Val Curves" data-screen-label="B6 Train/Val Curves" data-speaker-notes="For questions on SAC's generation-to-generation stability. FGSv2-SAC and FGSv3-SAC both show high-variance, spiky trajectories across all four metrics on ingolstadt21 -- neither training nor validation settles cleanly within 200 episodes. FGSv3-SAC trends slightly lower on delay, waiting time and queue length, but the gaming-risk instability is common to both generations, which is why neither is used as the headline regional result." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
-    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--muted);text-transform:uppercase;">B6 — Backup</div>
+  <section data-label="Train Val Curves" data-screen-label="B11 Train/Val Curves" data-speaker-notes="For questions on SAC's generation-to-generation stability. FGSv2-SAC and FGSv3-SAC both show high-variance, spiky trajectories across all four metrics on ingolstadt21 -- neither training nor validation settles cleanly within 200 episodes. FGSv3-SAC trends slightly lower on delay, waiting time and queue length, but the gaming-risk instability is common to both generations, which is why neither is used as the headline regional result." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--muted);text-transform:uppercase;">B11 — Backup</div>
     <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 16px 0;">FGSv2 vs. FGSv3 (SAC) — training &amp; validation</h2>
 
     <div style="flex:1;display:flex;flex-direction:column;gap:14px;min-height:0;">
@@ -1184,8 +1197,8 @@
     <div style="margin-top:16px;font-size:19px;color:var(--ink-soft);">Both SAC generations stay high-variance on all four metrics at N=21 — FGSv3-SAC trends modestly lower on delay, waiting time and queue length, but neither converges cleanly, which is why FGSv3-PPO is reported as the regional headline (B10).</div>
   </section>
 
-  <section data-label="B7 Factored Critic Math" data-screen-label="B7 Critic Math" data-speaker-notes="Preempts the sharpest methodological question. Input-dim derivation from 3,133 to 204, and an honest concession that two things changed at once between FGSv2 and FGSv3." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
-    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--muted);text-transform:uppercase;">B7 — Backup</div>
+  <section data-label="Factored Critic Math" data-screen-label="B12 Critic Math" data-speaker-notes="Preempts the sharpest methodological question. Input-dim derivation from 3,133 to 204, and an honest concession that two things changed at once between FGSv2 and FGSv3." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--muted);text-transform:uppercase;">B12 — Backup</div>
     <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Factored critic: the math</h2>
 
     <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:40px;">
@@ -1203,8 +1216,8 @@
     <div style="margin-top:24px;background:#F1E2D9;border-radius:4px;padding:22px 30px;font-size:21px;color:var(--accent-deep);">Conceded directly: FGSv2→FGSv3 changed both the message content and the critic architecture in the same step. Their individual contributions are not decomposable from current data — a controlled partial ablation is named as follow-on work.</div>
   </section>
 
-  <section data-label="B8 GATv2 vs GAT" data-screen-label="B8 GATv2 Eq" data-speaker-notes="Only if a committee member digs into the attention mechanism itself." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
-    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--muted);text-transform:uppercase;">B8 — Backup</div>
+  <section data-label="GATv2 vs GAT" data-screen-label="B13 GATv2 Eq" data-speaker-notes="Only if a committee member digs into the attention mechanism itself." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--muted);text-transform:uppercase;">B13 — Backup</div>
     <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">GATv2 vs. GAT: the equation</h2>
 
     <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:40px;">
@@ -1221,8 +1234,8 @@
     </div>
   </section>
 
-  <section data-label="B9 Checkpoint Selection" data-screen-label="B9 Checkpoint" data-speaker-notes="Justifies best-validation checkpoint selection, citing Henderson et al., and naming the conservative alternative." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
-    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--muted);text-transform:uppercase;">B9 — Backup</div>
+  <section data-label="Checkpoint Selection" data-screen-label="B14 Checkpoint" data-speaker-notes="Justifies best-validation checkpoint selection, citing Henderson et al., and naming the conservative alternative." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--muted);text-transform:uppercase;">B14 — Backup</div>
     <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Why best-validation checkpoint?</h2>
 
     <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:24px;">
@@ -1232,8 +1245,8 @@
     </div>
   </section>
 
-  <section data-label="B10 Limitations" data-screen-label="B10 Limitations" data-speaker-notes="Shows the committee I know the limitations cold: single seed, reward gaming, SAC variance at N=21, and train-to-validation demand shift." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
-    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--muted);text-transform:uppercase;">B10 — Backup</div>
+  <section data-label="Limitations" data-screen-label="B15 Limitations" data-speaker-notes="Shows the committee I know the limitations cold: single seed, reward gaming, SAC variance at N=21, and train-to-validation demand shift." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--muted);text-transform:uppercase;">B15 — Backup</div>
     <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">Limitations, summarized</h2>
 
     <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:32px;">
@@ -1253,15 +1266,6 @@
         <div style="font-family:var(--head);font-weight:600;font-size:19px;color:var(--accent-dark);">TRAIN→VAL DEMAND SHIFT</div>
         <div style="font-size:22px;line-height:1.5;">Held-out demand seed differs from training demand; the FGS_P gap (78 s vs. 234.9 s, B6) shows this can be severe.</div>
       </div>
-    </div>
-  </section>
-
-  <section data-label="B11 System Architecture" data-screen-label="B11 Architecture" data-speaker-notes="For infrastructure/reproducibility questions. Shows the full software stack: SUMO for simulation, sumo-rl wrapping PettingZoo's ParallelEnv, the local encoder (MLP/FRAP) feeding graphML attention (GAT/GATv2), ray rllib for actor-critic training, and Weights &amp; Biases for experiment tracking." style="width:100%;height:100%;background:var(--bg);position:relative;font-family:var(--body);color:var(--ink);padding:var(--pad-top) var(--pad-x) var(--pad-bottom);box-sizing:border-box;display:flex;flex-direction:column;">
-    <div style="font-family:var(--head);font-weight:600;font-size:var(--type-kicker);letter-spacing:0.14em;color:var(--muted);text-transform:uppercase;">B11 — Backup</div>
-    <h2 style="font-family:var(--head);font-weight:500;font-size:var(--type-title);margin:16px 0 var(--gap-title) 0;">System architecture</h2>
-
-    <div style="flex:1;min-height:0;border-radius:4px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
-      <img src="uploads/system_architecture.png" alt="System architecture: SUMO simulator feeding sumo-rl, which wraps PettingZoo ParallelEnv, a local torch encoder (MLP/FRAP), graphML attention (GAT/GATv2), and ray rllib actor-critic training, logged to Weights &amp; Biases" style="width:100%;height:auto;max-height:100%;object-fit:contain;">
     </div>
   </section>
 
